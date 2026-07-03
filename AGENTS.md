@@ -210,6 +210,23 @@ Anders als KAiTix (Intranet-only) **darf** ModellGarage externe API-Calls machen
 - **Konsequenz:** Kein CORS-Setup nötig im Betrieb (gleiche Origin). Media unter
   `/media/*` ebenfalls von FastAPI serviert.
 
+## Deployment-Ziel: Windows + Podman (Container)
+
+**Produktiv läuft ModellGarage als Container unter Podman auf Windows.**
+- **Ein Container, ein Prozess, ein Port** — genau der `start-prod`-Weg
+  (FastAPI serviert gebautes SvelteKit + `/media` + `/api`).
+- **Multi-Stage-Build** (`Containerfile`): Stage 1 Node baut das Frontend,
+  Stage 2 Python (slim) läuft schlank ohne Node/npm.
+- **Podman-kompatibel** — `compose.yml` läuft mit `podman compose` /
+  `podman-compose`. Keine Docker-spezifischen Features (kein BuildKit-Syntax,
+  kein `docker compose`-Only).
+- **Persistenz über Volumes**: `data/` (SQLite-DB) und `media/` (Fotos) werden
+  als Named Volumes gemountet, damit sie Container-Rebuilds überleben.
+- **Windows-Fallstricke**: LF-Zeilenenden erzwingen (`.gitattributes`), keine
+  absoluten Linux-Pfade hart kodieren, Port-Mapping explizit (`8003:8003`).
+- Excel-Import läuft einmalig im Container (`podman exec ... make import`) oder
+  über ein gemountetes `data/`-Volume mit vorbefüllter DB.
+
 ## Commit-Konventionen
 
 **Conventional Commits**:

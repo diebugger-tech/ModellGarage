@@ -100,8 +100,11 @@ uploaded_media_*
 .DS_Store
 Thumbs.db
 
-# === DOCKER ==================================================================
+# === CONTAINER / PODMAN =====================================================
 docker-compose.override.yml
+compose.override.yml
+.podman/
+*.tar
 
 # === IDE ====================================================================
 .idea/
@@ -114,3 +117,6 @@ fix_*.py
 patch_*.py
 future.md
 todo.md
+
+# === DEV RUNTIME (PID-Dateien, Logs von make start) =========================
+.run/

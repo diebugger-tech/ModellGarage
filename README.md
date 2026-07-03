@@ -2,15 +2,15 @@
 
 > **Inventar- & Bewertungs-App für Modellauto-Sammlungen.**
 > Aus einer statischen Sammler-Excel wird eine leichtgewichtige, schöne App —
-> mit Konvolut-Handling, Katalog-Abgleich und optionaler eBay-Anbindung.
+> mit Katalog-Abgleich, Konvolut-Handling und optionaler eBay-Anbindung.
 
 ---
 
 ## Idee
 
 Ein leidenschaftlicher Sammler dokumentiert seine Modellautos (Wiking, Siku,
-Majorette) bisher in Excel. ModellGarage überführt diese Daten in eine echte
-App: durchsuchbar, mobil bedienbar, mit Fotos und automatischer Wertermittlung.
+Majorette, Matchbox …) bisher in Excel. ModellGarage überführt diese Daten in
+eine echte App: durchsuchbar, mobil bedienbar, mit Fotos und Wertermittlung.
 
 **Kernnutzen:**
 - Doppelkäufe vermeiden (Sammlung durchsuchbar)
@@ -20,75 +20,115 @@ App: durchsuchbar, mobil bedienbar, mit Fotos und automatischer Wertermittlung.
 
 ---
 
+## Schnellstart
+
+### Lokal (Entwicklung)
+
+```bash
+make setup     # venv + Python-Deps + npm ci
+make import     # Excel → SQLite (einmalig)
+make start      # Backend :8003 + Frontend :5173 (Hot-Reload)
+make stop       # beides stoppen
+make status     # laufende Prozesse zeigen
+```
+
+### Lokal (Produktion, ein Prozess)
+
+```bash
+make start-prod  # baut Frontend + FastAPI serviert alles auf :8003
+```
+→ http://127.0.0.1:8003
+
+### Container (Podman — Zielumgebung Windows)
+
+```bash
+make podman-up      # Container bauen + starten (:8003)
+make podman-import   # Excel im Container importieren
+make podman-logs     # Logs folgen
+make podman-down     # stoppen
+```
+
+### Tests
+
+```bash
+make test        # pytest
+```
+
+`make help` zeigt alle Targets.
+
+---
+
 ## Was die App besonders macht
 
 ### 1. Katalog-basierte Identität
 Jedes Modell hat eine herstellereigene Katalognummer (Wiking `30/6K.`,
 Siku `1050`, …). Diese steht **nicht am Modell**, sondern kommt aus dem
-jeweiligen Sammlerkatalog (Grüner Katalog / Rawe / Siku-Katalog).
-→ Kataloge werden einmalig als Seed importiert; Werte (Min/Max) leben dort,
-nicht am Einzelmodell (keine 6-fache Pflege identischer Werte).
+jeweiligen Sammlerkatalog. Werte (Min/Max) leben im Katalog, nicht am
+Einzelmodell (keine mehrfache Pflege identischer Werte).
 
-### 2. Konvolut-Handling (Kernfeature)
-Kauf mehrerer Autos in einer Auktion, ohne Einzelangaben:
-1. Konvolut als **Eltern-Datensatz** anlegen (Quelle, Gesamtpreis, Datum, Gesamtfoto)
-2. Beim Auspacken jedes Auto als **Kind-Datensatz** verknüpfen
-3. Einzelpreis **nach Katalog-Schätzwert gewichtet** berechnen
-   (nicht stumpf Gesamtpreis ÷ Anzahl — ein 5€- und ein 80€-Auto
-   bekommen faire Anteile)
+### 2. Konvolut-Handling (geplant, Phase 2)
+Kauf mehrerer Autos in einer Auktion, ohne Einzelangaben: Konvolut als
+Eltern-Datensatz, jedes Auto als Kind, Einzelpreis **nach Katalog-Schätzwert
+gewichtet** (nicht stumpf Gesamtpreis ÷ Anzahl).
 
 ### 3. Zustand bleibt Handarbeit
-Zustand (z0/z1/z2) entscheidet der Sammler per Sichtung — die App bietet
-nur ein schnelles Dropdown. Optionale Foto-KI schlägt später höchstens vor.
+Zustand (z0/z1/z2) entscheidet der Sammler per Sichtung — die App bietet nur
+ein Dropdown. Optionale Foto-KI (später) schlägt höchstens vor.
 
-### 4. eBay-Anbindung (optional, Endstufe)
-Beim Import eines Kaufs werden **Auktionsfoto + Preis** übernommen.
-Bilder werden **lokal gespeichert** (eBay-URLs sterben nach Auktionsende).
+### 4. Fotos & eBay (später)
+Fotos lädt der Sammler manuell pro Modell hoch (Upload-Endpoint steht). eBay-
+Import (Foto + Preis, lokal gespeichert) ist Phase 3, optional.
 
 ---
 
 ## Tech-Stack
 
-| Schicht    | Wahl                    | Warum                                              |
-|------------|-------------------------|----------------------------------------------------|
-| Backend    | **FastAPI** (async)     | Schnell, auto-Swagger, Pydantic V2                 |
-| DB         | **SQLite** (aiosqlite)  | Leichteste DB — eine Datei, kein Server, relational|
-| ORM        | SQLAlchemy 2.x + Alembic| Wie KAiTix; Migrationen versioniert                |
-| Frontend   | **SvelteKit** (Svelte 5)| Schön, schnell, PWA-fähig (mobil)                  |
-| Fotos      | Lokaler `media/`-Ordner | eBay-Bilder herunterladen statt verlinken          |
+| Schicht    | Wahl                     | Warum                                              |
+|------------|--------------------------|----------------------------------------------------|
+| Backend    | **FastAPI** (async)      | Schnell, auto-Swagger, Pydantic V2                 |
+| DB         | **SQLite** (aiosqlite)   | Leichteste DB — eine Datei, kein Server, relational|
+| ORM        | SQLAlchemy 2.x           | Wie KAiTix; `create_all` im MVP, Alembic vorbereitet|
+| Frontend   | **SvelteKit** (Svelte 5) | Schön, schnell, PWA-fähig; `adapter-static`        |
+| Deployment | **Podman** (Windows)     | Ein Container, ein Prozess, ein Port (8003)        |
+| Fotos      | Lokaler `media/`-Ordner  | Bilder herunterladen/speichern statt verlinken     |
 
-**Design-Prinzip:** leichtgewichtig. Serverlose DB, dünnes Backend,
-schönes Frontend. Kein MongoDB/Postgres, kein Kubernetes.
+**Design-Prinzip:** leichtgewichtig. Serverlose DB, dünnes Backend, schönes
+Frontend im Editorial-Stil (angelehnt an classicdriver.com). Kein MongoDB/
+Postgres, kein Kubernetes.
 
 ---
 
-## Projektstruktur (geplant)
+## Projektstruktur (Ist-Stand)
 
 ```
-modellgarage/
+ModellGarage/
 ├── app/
-│   ├── core/            config.py, database.py (async SQLite)
-│   ├── domains/
-│   │   ├── modelle/     CRUD, Suche, Filter
-│   │   ├── katalog/     Siku / Majorette / Wiking Kataloge
-│   │   ├── konvolut/    Eltern/Kind + gewichteter Einzelpreis
-│   │   └── ebay/        Import: Foto + Preis lokal ziehen
-│   └── services/
-│       └── excel_import.py   Erst-Migration Excel → SQLite
-├── frontend/            SvelteKit (Svelte 5)
-├── alembic/             Migrationen (immutable)
-├── media/              eBay-/Modell-Fotos (lokal, gitignored)
-└── data/               SQLite-DB + Katalog-Seeds (gitignored)
+│   ├── core/            config.py, database.py (async SQLite, FK-Enforcement)
+│   ├── routers/         modelle, statistik, export, fotos
+│   ├── services/        excel_import.py (header-getrieben, 18 Blätter)
+│   ├── models.py        SQLAlchemy: katalog/modell/konvolut/foto
+│   ├── schemas.py       Pydantic V2
+│   └── main.py          App + StaticFiles + SPA-Fallback
+├── frontend/            SvelteKit 5 (Galerie + Detail)
+│   └── src/routes/      +page.svelte (Galerie), modell/[id] (Detail)
+├── scripts/             import_excel.py + Verifikations-Helfer
+├── tests/               pytest (API)
+├── docs/schema.sql      DDL-Referenz
+├── Containerfile        Multi-Stage (Node build → Python runtime)
+├── compose.yml          Podman/Docker Compose
+├── Makefile             make start/stop/test/podman-*
+├── data/                SQLite-DB (gitignored)
+└── media/               Fotos (gitignored)
 ```
 
 ---
 
-## Datenmodell (Kurzfassung)
+## Datenmodell
 
 ```
 katalog    (hersteller, katalog_nr, typ, min_euro, max_euro, serie, quelle)
 modell     (katalog_id→, farbe, zustand z0/z1/z2, bemerkung,
-            bezahlt, schätzwert, kaufdatum, anzahl, konvolut_id→)
+            bezahlt, schaetzwert, kaufdatum, anzahl, konvolut_id→)
 konvolut   (quelle, gesamtpreis, datum)
 foto       (modell_id→ | konvolut_id→, pfad, quelle)   # 1:n, eigene Tabelle
 ```
@@ -98,18 +138,18 @@ einziger Prozess (ein Port, kein separater Node-Server im Betrieb).
 
 ---
 
-## Roadmap (MVP-first)
-
-1. **Excel → SQLite Import** + Tabellen-UI → ersetzt sofort die Excel
-2. **Konvolut-Handling** (Eltern/Kind, gewichteter Preis)
-3. **eBay-Import** (Foto + Preis lokal ziehen)
-4. **Foto-KI** (optional) — Maske ist vorbereitet, KI füllt später vor
-
----
-
 ## Status
 
-🌱 **Konzeptphase / Initialisierung.** Noch kein Anwendungscode.
+🚀 **MVP lauffähig.**
+- Excel-Import (header-getrieben, 18 Blätter, ~6.300 Modelle, ~3.250 Katalog-Einträge)
+- Backend: CRUD, Suche, Filter, Sortierung, Statistik, Excel-Export, Foto-Upload
+- Frontend: Galerie + Detail im Classic-Driver-Design, Suche/Filter/Statistik
+- Ein Prozess serviert Frontend + API + `/media` (SPA-Fallback für Deep-Links)
+- Podman-Deployment (Multi-Stage-Container) für Windows
+- 4 pytest grün, E2E verifiziert
+
+**Offen (Phase 2+):** Konvolut-UI, Bearbeiten-Formular, Hersteller-Normalisierung,
+Foto-Upload-UI, eBay-Import (Phase 3).
 
 ---
 
