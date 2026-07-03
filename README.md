@@ -88,9 +88,13 @@ modellgarage/
 ```
 katalog    (hersteller, katalog_nr, typ, min_euro, max_euro, serie, quelle)
 modell     (katalog_id→, farbe, zustand z0/z1/z2, bemerkung,
-            bezahlt, schätzwert, kaufdatum, anzahl, konvolut_id→, fotos[])
-konvolut   (quelle, gesamtpreis, datum, gesamtfoto)
+            bezahlt, schätzwert, kaufdatum, anzahl, konvolut_id→)
+konvolut   (quelle, gesamtpreis, datum)
+foto       (modell_id→ | konvolut_id→, pfad, quelle)   # 1:n, eigene Tabelle
 ```
+
+**Auslieferung:** FastAPI serviert das gebaute SvelteKit + `/media` als ein
+einziger Prozess (ein Port, kein separater Node-Server im Betrieb).
 
 ---
 

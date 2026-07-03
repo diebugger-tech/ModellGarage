@@ -40,9 +40,16 @@
 ```
 katalog    (id, hersteller, katalog_nr, typ, min_euro, max_euro, serie, quelle)
 modell     (id, katalog_id→, farbe, zustand[z0/z1/z2], bemerkung,
-            bezahlt, schätzwert, kaufdatum, anzahl, konvolut_id→null, fotos[])
-konvolut   (id, quelle, gesamtpreis, datum, gesamtfoto)
+            bezahlt, schätzwert, kaufdatum, anzahl, konvolut_id→null)
+konvolut   (id, quelle, gesamtpreis, datum)
+foto       (id, modell_id→null, konvolut_id→null, pfad, quelle[ebay/manuell])
 ```
+
+- **`foto` ist eine eigene Tabelle** (1:n): Ein Modell kann mehrere Fotos haben,
+  ein Konvolut sein Gesamtfoto. Genau eines von `modell_id`/`konvolut_id` ist
+  gesetzt. Kein Foto-Array am Modell (relational nicht möglich).
+- **`katalog_nr` kann sich über mehrere `modell`-Zeilen wiederholen** (Dubletten
+  / "doppelt" in der Excel) — viele `modell` → ein `katalog`. Das ist gewollt.
 
 ## Design-Prinzipien (nicht verhandelbar)
 
@@ -95,6 +102,17 @@ Anders als KAiTix (Intranet-only) **darf** ModellGarage externe API-Calls machen
 - **Svelte 5**, Routes-Gruppen `src/routes/(app)/`.
 - `npm run build` muss grün sein, bevor Frontend-Änderungen als fertig gelten.
 - Mobil-first denken (PWA): Sammlung durchblättern, Zustand nachtragen am Handy.
+
+## ADR — Ein Prozess: FastAPI liefert das Frontend aus
+
+- **Entscheidung:** Das gebaute SvelteKit (`adapter-static`, `npm run build` →
+  `frontend/build/`) wird von FastAPI als statische Dateien ausgeliefert
+  (`StaticFiles`). API unter `/api/*`, Frontend unter `/`.
+- **Begründung:** Leichtgewichtig + Single-User. Ein `uvicorn`-Start, ein Port,
+  kein separater Node-Server im Betrieb. In der Entwicklung dürfen Vite-Dev-Server
+  (Frontend) und uvicorn (Backend) getrennt laufen (Proxy auf `/api`).
+- **Konsequenz:** Kein CORS-Setup nötig im Betrieb (gleiche Origin). Media unter
+  `/media/*` ebenfalls von FastAPI serviert.
 
 ## Commit-Konventionen
 
