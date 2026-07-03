@@ -60,6 +60,9 @@ ebay_token.json
 # === NODE / SVELTEKIT ========================================================
 node_modules/
 .svelte-kit/
+frontend/build/
+frontend/.svelte-kit/
+frontend/node_modules/
 # package-lock.json wird BEWUSST committet (reproduzierbare Builds beim Clone)
 yarn.lock
 pnpm-lock.yaml
