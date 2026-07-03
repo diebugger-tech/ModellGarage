@@ -35,3 +35,59 @@ export function euro(v) {
   if (v == null) return '–';
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(v);
 }
+
+export async function importiereExcel(file) {
+  const fd = new FormData();
+  fd.append('datei', file);
+  const r = await fetch('/api/import/excel', { method: 'POST', body: fd });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.detail || 'Import fehlgeschlagen');
+  return data;
+}
+
+export async function uploadFoto(modellId, file) {
+  const fd = new FormData();
+  fd.append('datei', file);
+  const r = await fetch('/api/modelle/' + modellId + '/foto', { method: 'POST', body: fd });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.detail || 'Upload fehlgeschlagen');
+  return data;
+}
+
+export async function getFotos(modellId) {
+  const r = await fetch('/api/modelle/' + modellId + '/fotos');
+  if (!r.ok) return [];
+  return r.json();
+}
+
+export async function loescheFoto(fotoId) {
+  const r = await fetch('/api/fotos/' + fotoId, { method: 'DELETE' });
+  return r.ok;
+}
+
+export async function erstelleModellVoll(daten) {
+  const r = await fetch('/api/modelle/voll', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(daten)
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.detail || 'Anlegen fehlgeschlagen');
+  return data;
+}
+
+export async function aktualisiereModell(id, daten) {
+  const r = await fetch('/api/modelle/' + id, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(daten)
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.detail || 'Speichern fehlgeschlagen');
+  return data;
+}
+
+export async function loescheModell(id) {
+  const r = await fetch('/api/modelle/' + id, { method: 'DELETE' });
+  return r.ok;
+}

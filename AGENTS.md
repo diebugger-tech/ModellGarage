@@ -273,7 +273,14 @@ Regeln:
 
 Offene TODOs (Phase 2+):
 - Konvolut-Handling (Eltern/Kind, gewichteter Einzelpreis) — Tabelle steht, UI/Logik fehlt
-- Foto-Upload-UI im Frontend (Endpoint steht)
 - Hersteller-Normalisierung (Matchbox-Serien wie "Superfast"/"Lesney" als Serie statt Hersteller)
-- Bearbeiten-UI (PATCH-Endpoint steht, Frontend-Formular fehlt)
 - eBay-Import (Phase 3, braucht Developer-Keys)
+
+Erledigt (Phase 1b — CRUD + Upload-UI):
+- ✅ Excel-Import-UI (`/import`, Drag&Drop-Upload → `POST /api/import/excel`)
+- ✅ Foto-Upload-UI (Detailseite, `POST /api/modelle/{id}/foto`)
+- ✅ Modell manuell anlegen (`/neu`, eBay copy-paste) — `POST /api/modelle/voll`
+  legt bei Bedarf neuen Hersteller/Katalog-Eintrag an (get-or-create)
+- ✅ Bearbeiten + Löschen auf der Detailseite (PATCH/DELETE)
+- Manuell angelegte Modelle nutzen dieselben Tabellen/Felder wie importierte —
+  kein Bruch zwischen Excel-Daten und Handeingabe

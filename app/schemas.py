@@ -60,6 +60,31 @@ class ModellCreate(BaseModel):
     konvolut_id: int | None = None
 
 
+class ModellCreateVoll(BaseModel):
+    """Modell manuell anlegen (z.B. eBay copy-paste) — Katalog inline.
+
+    Legt bei Bedarf einen neuen Katalog-Eintrag an (neuer Hersteller / neue Nr.).
+    Felder entsprechen 1:1 der Sammler-Excel.
+    """
+    # Katalog-Teil (Identität + Werte)
+    hersteller: str
+    katalog_nr: str | None = None
+    typ: str
+    serie: str | None = None
+    min_euro: float | None = None
+    max_euro: float | None = None
+    quelle: str | None = None
+    # Modell-Teil (das konkrete Exemplar)
+    farbe: str | None = None
+    zustand: str | None = None
+    bemerkung: str | None = None
+    bezahlt: float | None = None          # Einkaufspreis
+    schaetzwert: float | None = None
+    kaufdatum: str | None = None
+    anzahl: int = 1
+    konvolut_id: int | None = None
+
+
 class ModellUpdate(BaseModel):
     farbe: str | None = None
     zustand: str | None = None

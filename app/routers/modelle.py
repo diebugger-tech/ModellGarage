@@ -8,7 +8,13 @@ from sqlalchemy.orm import selectinload
 
 from app.core.database import get_session
 from app.models import Katalog, Modell
-from app.schemas import ModellCreate, ModellListe, ModellOut, ModellUpdate
+from app.schemas import (
+    ModellCreate,
+    ModellCreateVoll,
+    ModellListe,
+    ModellOut,
+    ModellUpdate,
+)
 
 router = APIRouter(prefix="/api/modelle", tags=["modelle"])
 
@@ -84,6 +90,60 @@ async def erstelle_modell(
     if kat is None:
         raise HTTPException(400, "katalog_id existiert nicht")
     modell = Modell(**data.model_dump())
+    session.add(modell)
+    await session.commit()
+    await session.refresh(modell, ["katalog"])
+    return ModellOut.model_validate(modell)
+
+
+@router.post("/voll", response_model=ModellOut, status_code=201)
+async def erstelle_modell_voll(
+    data: ModellCreateVoll, session: AsyncSession = Depends(get_session)
+) -> ModellOut:
+    """Manuell anlegen (eBay copy-paste). Katalog-Eintrag wird bei Bedarf erzeugt.
+
+    get-or-create über (hersteller, katalog_nr): existiert die Kombination schon,
+    wird angehängt (Dublette gewollt); sonst neuer Katalog-Eintrag (neuer
+    Hersteller / neue Nummer). Werte (min/max) landen im Katalog.
+    """
+    nr = (data.katalog_nr or "").strip() or f"?/{data.hersteller}/{data.typ[:24]}"
+
+    kat: Katalog | None = None
+    stmt = select(Katalog).where(
+        Katalog.hersteller == data.hersteller, Katalog.katalog_nr == nr
+    )
+    kat = (await session.execute(stmt)).scalar_one_or_none()
+
+    if kat is None:
+        kat = Katalog(
+            hersteller=data.hersteller,
+            katalog_nr=nr,
+            typ=data.typ,
+            serie=data.serie,
+            min_euro=data.min_euro,
+            max_euro=data.max_euro,
+            quelle=data.quelle,
+        )
+        session.add(kat)
+        await session.flush()
+    else:
+        # Werte im Katalog ergänzen, falls dort noch leer und hier angegeben
+        if kat.min_euro is None and data.min_euro is not None:
+            kat.min_euro = data.min_euro
+        if kat.max_euro is None and data.max_euro is not None:
+            kat.max_euro = data.max_euro
+
+    modell = Modell(
+        katalog_id=kat.id,
+        farbe=data.farbe,
+        zustand=data.zustand,
+        bemerkung=data.bemerkung,
+        bezahlt=data.bezahlt,
+        schaetzwert=data.schaetzwert,
+        kaufdatum=data.kaufdatum,
+        anzahl=data.anzahl,
+        konvolut_id=data.konvolut_id,
+    )
     session.add(modell)
     await session.commit()
     await session.refresh(modell, ["katalog"])
