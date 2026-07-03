@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.core.database import init_db
-from app.routers import export, fotos, modelle, statistik
+from app.routers import ebay, export, fotos, modelle, statistik
 
 
 @asynccontextmanager
@@ -30,6 +30,7 @@ app.include_router(modelle.router)
 app.include_router(statistik.router)
 app.include_router(export.router)
 app.include_router(fotos.router)
+app.include_router(ebay.router)
 
 
 @app.get("/api/health")

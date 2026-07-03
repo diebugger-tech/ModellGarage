@@ -115,6 +115,28 @@ legt einen `foto`-Datensatz an — steht bereit, wenn er soweit ist.
   Sammler seine gewohnte Excel-Sicht behält und Backups außerhalb der App hat.
   Format: ein Blatt pro Serie/Hersteller, gleiche Spalten wie das Original.
 
+## eBay-Erfassung: Text-Paste, NICHT URL-Fetch (verifiziert)
+
+**Wichtige Erkenntnis (2026-07, verifiziert):** eBay **blockt Server-seitige
+HTTP-Abfragen zuverlässig mit 403** (Bot-Erkennung auf Datacenter-IPs). Getestet:
+direkter Fetch (.de/.com), Reader-Proxy `r.jina.ai` — alle 403.
+
+→ **Ein URL-Fetch-Ansatz ist eine Sackgasse. Nicht erneut versuchen.**
+
+**Funktionierender Weg (implementiert):** Der Nutzer kopiert den **Titel (+ optional
+Preis/Zustand)** aus seinem eigenen Browser und fügt ihn in die eBay-Schnell-
+erfassung auf `/neu` ein. `app/services/ebay_parse.py` parst nur Text (kein
+Netzwerk):
+- Hersteller-Heuristik gegen bekannte Marken-Liste (Wiking/Siku/Majorette/…)
+- Preis (EUR-Muster), Zustand (Keywords neuwertig→z0, bespielt→z2), Maßstab
+- Typ = Titel minus Hersteller minus Rauschen (OVP/1:87/NEU/…)
+- **Katalog-Nr. NICHT ableitbar** — steht selten im eBay-Titel, bleibt leer
+- Endpoint: `POST /api/ebay/parse-text`. Füllt Formular nur VOR (Vorschlag),
+  Nutzer prüft/korrigiert immer selbst. Nichts wird automatisch gespeichert.
+
+Falls später echte eBay-Daten nötig: nur über die **offizielle eBay-API mit
+Developer-Account + OAuth** (Browse API = aktive Angebote). Kein HTML-Scraping.
+
 ## Design-Sprache (verbindlich)
 
 **Vorbild: classicdriver.com/de — übertragen auf Modellautos.**

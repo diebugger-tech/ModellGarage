@@ -1,11 +1,17 @@
 <script>
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { getHersteller, erstelleModellVoll } from '$lib/api.js';
+  import { getHersteller, erstelleModellVoll, ebayParseText } from '$lib/api.js';
 
   let hersteller = $state([]);
   let laeuft = $state(false);
   let fehler = $state(null);
+
+  // eBay-Schnellerfassung
+  let ebayTitel = $state('');
+  let ebayExtra = $state('');
+  let ebayLaeuft = $state(false);
+  let ebayHinweis = $state(null);
 
   // Felder = 1:1 die Excel-Spalten
   let f = $state({
@@ -16,6 +22,26 @@
   });
 
   onMount(async () => { hersteller = await getHersteller(); });
+
+  async function ebayUebernehmen() {
+    if (!ebayTitel.trim()) return;
+    ebayLaeuft = true; ebayHinweis = null;
+    try {
+      const v = await ebayParseText(ebayTitel, ebayExtra);
+      if (v.hersteller) f.hersteller = v.hersteller;
+      if (v.typ) f.typ = v.typ;
+      if (v.bezahlt != null) f.bezahlt = v.bezahlt;
+      if (v.zustand) f.zustand = v.zustand;
+      if (v.bemerkung) f.bemerkung = v.bemerkung;
+      ebayHinweis = 'Übernommen — bitte prüfen und ggf. korrigieren. '
+        + (v.hersteller ? '' : 'Hersteller nicht erkannt. ')
+        + 'Katalog-Nr. steht selten im eBay-Titel.';
+    } catch (e) {
+      ebayHinweis = '⚠ ' + e.message;
+    } finally {
+      ebayLaeuft = false;
+    }
+  }
 
   function num(v) { return v === '' || v == null ? null : Number(v); }
 
@@ -61,6 +87,34 @@
     Neuer Hersteller oder neue Katalog-Nummer werden automatisch angelegt und
     passen nahtlos zu den importierten Excel-Daten.
   </p>
+
+  <!-- eBay-Schnellerfassung -->
+  <div class="ebay-box">
+    <div class="ebay-head">
+      <span class="ebay-badge">eBay-Schnellerfassung</span>
+      <span style="color:var(--ink-soft); font-size:.82rem">Titel aus dem eBay-Angebot kopieren & einfügen</span>
+    </div>
+    <input
+      bind:value={ebayTitel}
+      placeholder='z.B. "Wiking VW T2 Bus Sondermodell 1:87 OVP"'
+    />
+    <input
+      bind:value={ebayExtra}
+      placeholder="optional: Preis / Zustand mitkopieren, z.B. EUR 39,00 gebraucht"
+      style="margin-top:8px"
+    />
+    <div style="display:flex; gap:10px; align-items:center; margin-top:10px">
+      <button class="btn" onclick={ebayUebernehmen} disabled={ebayLaeuft || !ebayTitel.trim()}>
+        {ebayLaeuft ? 'Werte aus …' : 'Werte übernehmen ↓'}
+      </button>
+      <span style="color:var(--ink-soft); font-size:.78rem">
+        Hinweis: eBay blockt automatisches Laden per Link — daher Titel einfügen.
+      </span>
+    </div>
+    {#if ebayHinweis}
+      <div class="ebay-hint">{ebayHinweis}</div>
+    {/if}
+  </div>
 
   <datalist id="hersteller-liste">
     {#each hersteller as h}<option value={h}></option>{/each}
@@ -137,5 +191,24 @@
   }
   input:focus, select:focus, textarea:focus { border-color: var(--accent); }
   .err { color: #a35a45; background: #f7ece9; border: 1px solid #e6c8c0; padding: 12px 16px; border-radius: 10px; }
+  .ebay-box {
+    background: var(--bg-card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 20px 22px; margin-bottom: 30px;
+    box-shadow: var(--shadow);
+  }
+  .ebay-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .ebay-badge {
+    font-size: .66rem; letter-spacing: .12em; text-transform: uppercase;
+    background: var(--accent); color: #fff; padding: 4px 10px; border-radius: 20px;
+  }
+  .ebay-box input {
+    width: 100%; border: 1px solid var(--line); background: var(--bg);
+    padding: 10px 12px; border-radius: 9px; color: var(--ink); font-size: 1rem; outline: none;
+  }
+  .ebay-box input:focus { border-color: var(--accent); }
+  .ebay-hint {
+    margin-top: 12px; font-size: .85rem; color: var(--accent-dark);
+    background: rgba(138,109,59,.08); padding: 10px 14px; border-radius: 9px; line-height: 1.5;
+  }
   @media (max-width: 640px) { .row, .row:has(label:nth-child(3)) { grid-template-columns: 1fr; } }
 </style>
