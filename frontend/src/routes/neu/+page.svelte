@@ -12,6 +12,7 @@
   let ebayExtra = $state('');
   let ebayLaeuft = $state(false);
   let ebayHinweis = $state(null);
+  let ebayInfo = $state(false);
 
   // Felder = 1:1 die Excel-Spalten
   let f = $state({
@@ -93,7 +94,28 @@
     <div class="ebay-head">
       <span class="ebay-badge">eBay-Schnellerfassung</span>
       <span style="color:var(--ink-soft); font-size:.82rem">Titel aus dem eBay-Angebot kopieren & einfügen</span>
+      <button class="info-btn" onclick={() => ebayInfo = !ebayInfo} title="Wie funktioniert das?" aria-label="Hilfe">i</button>
     </div>
+
+    {#if ebayInfo}
+      <div class="info-panel">
+        <strong>So funktioniert die eBay-Schnellerfassung:</strong>
+        <ol>
+          <li>eBay-Angebot im Browser öffnen.</li>
+          <li>Den <b>Titel</b> markieren und kopieren (Strg+C), oben einfügen.</li>
+          <li>Optional: Preis & Zustand (z.B. „EUR 39,00 gebraucht") ins zweite Feld.</li>
+          <li>„Werte übernehmen" klickt die Felder <b>Hersteller, Typ, Preis,
+              Zustand, Maßstab</b> automatisch voll.</li>
+          <li>Prüfen, ggf. korrigieren — vor allem die <b>Katalog-Nr.</b>
+              (steht selten im eBay-Titel).</li>
+        </ol>
+        <div class="info-warn">
+          Warum kein Link? eBay blockt automatisches Laden von Angebots-Links
+          (Bot-Schutz). Das Einfügen des Titels aus deinem Browser umgeht das
+          zuverlässig — und funktioniert auch bei bereits beendeten Auktionen.
+        </div>
+      </div>
+    {/if}
     <input
       bind:value={ebayTitel}
       placeholder='z.B. "Wiking VW T2 Bus Sondermodell 1:87 OVP"'
@@ -197,6 +219,24 @@
     box-shadow: var(--shadow);
   }
   .ebay-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .info-btn {
+    margin-left: auto; width: 24px; height: 24px; border-radius: 50%;
+    border: 1px solid var(--accent); background: transparent; color: var(--accent);
+    font-family: var(--serif); font-style: italic; font-size: .95rem; cursor: pointer;
+    line-height: 1; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: background .15s;
+  }
+  .info-btn:hover { background: var(--accent); color: #fff; }
+  .info-panel {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px 18px; margin-bottom: 14px; font-size: .88rem; line-height: 1.55;
+  }
+  .info-panel ol { margin: 10px 0 0; padding-left: 20px; }
+  .info-panel li { margin-bottom: 5px; }
+  .info-warn {
+    margin-top: 12px; padding: 10px 12px; background: rgba(138,109,59,.08);
+    border-radius: 8px; color: var(--accent-dark); font-size: .84rem;
+  }
   .ebay-badge {
     font-size: .66rem; letter-spacing: .12em; text-transform: uppercase;
     background: var(--accent); color: #fff; padding: 4px 10px; border-radius: 20px;
