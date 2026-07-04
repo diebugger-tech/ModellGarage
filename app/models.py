@@ -87,6 +87,30 @@ class Modell(Base):
     )
 
 
+class Wunsch(Base):
+    """Manuelle Merkliste: Nummern, die der Sammler noch sucht.
+
+    Unabhängig von katalog/modell (kein FK) — ein Wunsch darf auf eine Nummer
+    zeigen, die es in der Sammlung/im Katalog noch gar nicht gibt. Status
+    wandert von 'gesucht' → 'gekauft'.
+    """
+
+    __tablename__ = "wunsch"
+    __table_args__ = (
+        CheckConstraint("status IN ('gesucht','gekauft')", name="ck_wunsch_status"),
+        Index("ix_wunsch_status", "status"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    hersteller: Mapped[str] = mapped_column(String, nullable=False)
+    katalog_nr: Mapped[str | None] = mapped_column(String)
+    typ: Mapped[str | None] = mapped_column(String)
+    notiz: Mapped[str | None] = mapped_column(Text)
+    max_euro: Mapped[float | None] = mapped_column(Numeric(10, 2))
+    status: Mapped[str] = mapped_column(String, nullable=False, default="gesucht")
+    erstellt_am: Mapped[str | None] = mapped_column(String)  # ISO-8601 (Datum)
+
+
 class Foto(Base):
     __tablename__ = "foto"
     __table_args__ = (
