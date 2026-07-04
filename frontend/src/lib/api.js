@@ -11,12 +11,13 @@ export function getStatistik() {
   return j('/api/statistik');
 }
 
-export function getModelle({ q = '', hersteller = '', zustand = '', jahr = '', limit = 24, offset = 0, sort = 'id', order = 'asc' } = {}) {
+export function getModelle({ q = '', hersteller = '', zustand = '', jahr = '', qualitaet = '', limit = 24, offset = 0, sort = 'id', order = 'asc' } = {}) {
   const p = new URLSearchParams();
   if (q) p.set('q', q);
   if (hersteller) p.set('hersteller', hersteller);
   if (zustand) p.set('zustand', zustand);
   if (jahr) p.set('jahr', jahr);
+  if (qualitaet) p.set('qualitaet', qualitaet);
   p.set('limit', limit);
   p.set('offset', offset);
   p.set('sort', sort);
@@ -34,6 +35,14 @@ export function getHersteller() {
 
 export function getJahre() {
   return j('/api/statistik/jahre');
+}
+
+export function getKatalogKandidaten({ hersteller = '', katalog_nr = '', typ = '' } = {}) {
+  const p = new URLSearchParams();
+  if (hersteller) p.set('hersteller', hersteller);
+  if (katalog_nr) p.set('katalog_nr', katalog_nr);
+  if (typ) p.set('typ', typ);
+  return j('/api/katalog/kandidaten?' + p.toString());
 }
 
 export function euro(v) {
