@@ -22,9 +22,10 @@ router = APIRouter(prefix="/api/modelle", tags=["modelle"])
 @router.get("", response_model=ModellListe)
 async def liste_modelle(
     session: AsyncSession = Depends(get_session),
-    q: str | None = Query(None, description="Freitextsuche (Typ, Nr., Farbe, Bemerkung)"),
+    q: str | None = Query(None, description="Freitextsuche (Typ, Nr., Farbe, Bemerkung, Kaufjahr)"),
     hersteller: str | None = None,
     zustand: str | None = None,
+    jahr: str | None = Query(None, description="Kaufjahr-Filter, z.B. '2015'"),
     limit: int = Query(50, le=200),
     offset: int = 0,
     sort: str = Query("id", pattern="^(id|bezahlt|schaetzwert|kaufdatum)$"),
@@ -42,12 +43,15 @@ async def liste_modelle(
                 Katalog.katalog_nr.ilike(like),
                 Modell.farbe.ilike(like),
                 Modell.bemerkung.ilike(like),
+                Modell.kaufdatum.ilike(like),  # z.B. "2015" trifft das Kaufjahr
             )
         )
     if hersteller:
         filters.append(Katalog.hersteller == hersteller)
     if zustand:
         filters.append(Modell.zustand == zustand)
+    if jahr:
+        filters.append(func.substr(Modell.kaufdatum, 1, 4) == jahr)
 
     for f in filters:
         stmt = stmt.where(f)

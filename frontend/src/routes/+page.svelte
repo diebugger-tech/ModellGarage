@@ -1,10 +1,11 @@
 <script>
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { getStatistik, getModelle, getHersteller, euro } from '$lib/api.js';
+  import { getStatistik, getModelle, getHersteller, getJahre, euro } from '$lib/api.js';
 
   let stats = $state(null);
   let hersteller = $state([]);
+  let jahre = $state([]);
   let modelle = $state([]);
   let total = $state(0);
   let loading = $state(true);
@@ -13,6 +14,7 @@
   let q = $state('');
   let fHersteller = $state('');
   let fZustand = $state('');
+  let fJahr = $state('');
   let sort = $state('id');
   let order = $state('asc');
   let offset = $state(0);
@@ -22,7 +24,7 @@
 
   async function ladeListe() {
     loading = true;
-    const data = await getModelle({ q, hersteller: fHersteller, zustand: fZustand, limit, offset, sort, order });
+    const data = await getModelle({ q, hersteller: fHersteller, zustand: fZustand, jahr: fJahr, limit, offset, sort, order });
     modelle = data.items;
     total = data.total;
     loading = false;
@@ -37,11 +39,15 @@
   function seite(delta) { offset = Math.max(0, offset + delta * limit); ladeListe(); }
 
   onMount(async () => {
-    [stats, hersteller] = await Promise.all([getStatistik(), getHersteller()]);
+    [stats, hersteller, jahre] = await Promise.all([getStatistik(), getHersteller(), getJahre()]);
     await ladeListe();
   });
 
   const initial = (typ) => (typ || '?').trim().charAt(0).toUpperCase();
+  const kaufjahr = (m) => {
+    const j = (m.kaufdatum || '').slice(0, 4);
+    return /^\d{4}$/.test(j) ? j : '';
+  };
 </script>
 
 <svelte:head><title>ModellGarage — Die Sammlung</title></svelte:head>
@@ -69,11 +75,15 @@
       <option value="z1">z1 — sehr gut</option>
       <option value="z2">z2 — bespielt</option>
     </select>
+    <select bind:value={fJahr} onchange={filterAendern}>
+      <option value="">Alle Kaufjahre</option>
+      {#each jahre as jahr}<option value={jahr}>{jahr}</option>{/each}
+    </select>
     <select bind:value={sort} onchange={filterAendern}>
       <option value="id">Sortierung: Standard</option>
       <option value="bezahlt">Preis</option>
       <option value="schaetzwert">Schätzwert</option>
-      <option value="kaufdatum">Kaufdatum</option>
+      <option value="kaufdatum">Kaufjahr</option>
     </select>
     <button class="btn ghost" onclick={() => { order = order === 'asc' ? 'desc' : 'asc'; filterAendern(); }}>
       {order === 'asc' ? '↑' : '↓'}
@@ -99,6 +109,7 @@
             {#if m.farbe}<div class="nr">{m.farbe}</div>{/if}
             <div class="foot">
               <span class="preis">{euro(m.bezahlt ?? m.schaetzwert)}</span>
+              {#if kaufjahr(m)}<span class="jahr" style="color:var(--ink-soft); font-size:.8rem; font-variant-numeric:tabular-nums">{kaufjahr(m)}</span>{/if}
               {#if m.zustand}<span class="zustand {m.zustand}">{m.zustand}</span>{/if}
             </div>
           </div>

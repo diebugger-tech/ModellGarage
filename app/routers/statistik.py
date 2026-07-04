@@ -52,6 +52,20 @@ async def hersteller_liste(session: AsyncSession = Depends(get_session)) -> list
     return list(rows)
 
 
+@router.get("/jahre", response_model=list[str])
+async def jahre(session: AsyncSession = Depends(get_session)) -> list[str]:
+    """Distinct Kaufjahre (für das Jahr-Dropdown), neueste zuerst."""
+    jahr = func.substr(Modell.kaufdatum, 1, 4)
+    rows = (await session.execute(
+        select(jahr)
+        .where(Modell.kaufdatum.isnot(None))
+        .where(func.length(Modell.kaufdatum) >= 4)
+        .distinct()
+        .order_by(jahr.desc())
+    )).scalars().all()
+    return [j for j in rows if j and j.isdigit()]
+
+
 @router.get("/dashboard")
 async def dashboard(session: AsyncSession = Depends(get_session)) -> dict:
     """Aggregierte Daten für die Statistik-Grafiken (ein Call, viele Charts)."""
