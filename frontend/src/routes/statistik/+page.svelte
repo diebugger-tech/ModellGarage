@@ -4,10 +4,16 @@
 
   let d = $state(null);
   let laedt = $state(true);
+  let fehler = $state(null);
 
   onMount(async () => {
-    d = await getDashboard();
-    laedt = false;
+    try {
+      d = await getDashboard();
+    } catch (e) {
+      fehler = e.message || 'Auswertung konnte nicht geladen werden.';
+    } finally {
+      laedt = false;
+    }
   });
 
   // ---- SVG-Helfer ----
@@ -56,6 +62,8 @@
 
   {#if laedt}
     <div class="loading">Lade Auswertung …</div>
+  {:else if fehler}
+    <div class="loading">⚠ {fehler}</div>
   {:else if d}
     <!-- Wertentwicklung (kumuliert) -->
     <section class="chart-card">
@@ -104,7 +112,7 @@
         {#if d.zustand_verteilung.length}
           {@const totZ = d.zustand_verteilung.reduce((s,z)=>s+z.anzahl,0)}
           <div class="hbars">
-            {#each d.zustand_verteilung.sort((a,b)=>b.anzahl-a.anzahl) as z}
+            {#each [...d.zustand_verteilung].sort((a,b)=>b.anzahl-a.anzahl) as z}
               <div class="hbar-row">
                 <span class="hbar-lbl">{z.zustand}</span>
                 <div class="hbar-track">
