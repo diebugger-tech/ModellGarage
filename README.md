@@ -39,7 +39,7 @@ make start-prod  # baut Frontend + FastAPI serviert alles auf :8003
 ```
 → http://127.0.0.1:8003
 
-### Container (Podman — Zielumgebung Windows)
+### Container (Podman — Linux/Mac mit `make`)
 
 ```bash
 make podman-up      # Container bauen + starten (:8003)
@@ -47,6 +47,26 @@ make podman-import   # Excel im Container importieren
 make podman-logs     # Logs folgen
 make podman-down     # stoppen
 ```
+
+### Windows (Podman, ohne `make`) — Schritt für Schritt
+
+Für Windows gibt es Doppelklick-Skripte, kein `make` nötig.
+
+1. **Podman Desktop installieren:** https://podman.io/getting-started/installation
+   (beim ersten Start einmal „Initialize / Start" der Podman-Maschine bestätigen).
+2. **Projekt holen:** dieses Repository als ZIP herunterladen (GitHub → grüner
+   „Code"-Button → „Download ZIP") und entpacken — oder `git clone`.
+3. **Starten:** im entpackten Ordner **`start-podman.bat`** doppelklicken.
+   Der erste Start baut den Container (dauert ein paar Minuten) und öffnet dann
+   automatisch den Browser auf http://localhost:8003.
+4. **Eigene Excel importieren:** in der App oben auf **„Import"** klicken und die
+   `.xlsx`-Sammlungsdatei hochladen. Fertig — die Sammlung erscheint in der Galerie.
+5. **Stoppen:** **`stop-podman.bat`** doppelklicken. DB und Fotos bleiben in den
+   Podman-Volumes erhalten und sind beim nächsten Start wieder da.
+
+> Hinweis: Falls `podman compose` meldet, dass „compose" fehlt, in Podman Desktop
+> unter *Settings → Extensions* „Compose" aktivieren (oder `podman-compose`
+> nachinstallieren). Die Skripte selbst müssen dafür nicht geändert werden.
 
 ### Tests
 
