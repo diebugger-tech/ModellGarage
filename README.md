@@ -175,4 +175,4 @@ Mehrfach-Erfassung aus einer Konvolut-Beschreibung, pflegbarer Katalog (GK/Rawe)
 
 ## Lizenz
 
-Apache-2.0 (siehe `LICENSE`).
+MIT (siehe `LICENSE`).
