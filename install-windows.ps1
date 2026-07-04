@@ -31,11 +31,19 @@ if (-not (Get-Command podman -ErrorAction SilentlyContinue)) {
     --accept-package-agreements --accept-source-agreements
 }
 
-# PATH dieser Sitzung auffrischen, damit 'podman' sofort gefunden wird
+# 1b. Git installieren (fuer Klonen + spaetere Updates via 'git pull')
+if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+  Info "Installiere Git (winget) ..."
+  winget install -e --id Git.Git --silent `
+    --accept-package-agreements --accept-source-agreements
+}
+
+# PATH dieser Sitzung auffrischen, damit 'podman' und 'git' sofort gefunden werden
 $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
             [Environment]::GetEnvironmentVariable("Path", "User")
-$podmanDir = "C:\Program Files\RedHat\Podman"
-if (Test-Path $podmanDir) { $env:Path += ";$podmanDir" }
+foreach ($d in @("C:\Program Files\RedHat\Podman", "C:\Program Files\Git\cmd")) {
+  if (Test-Path $d) { $env:Path += ";$d" }
+}
 
 if (-not (Get-Command podman -ErrorAction SilentlyContinue)) {
   Warn "Podman ist installiert, aber in dieser Sitzung noch nicht verfuegbar."
@@ -62,14 +70,27 @@ if (-not $machines) {
 Info "Starte die Podman-Maschine ..."
 try { podman machine start *> $null } catch { }
 
-# 4. Projekt holen - ohne git, per ZIP von GitHub
+# 4. Projekt holen - per 'git clone' (Fallback: ZIP, falls git fehlt)
 $parent = "$env:USERPROFILE\Desktop"
-$zip = "$env:TEMP\modellgarage.zip"
-$proj = "$parent\ModellGarage-main"
-Info "Lade ModellGarage herunter ..."
-Invoke-WebRequest "https://github.com/diebugger-tech/ModellGarage/archive/refs/heads/main.zip" -OutFile $zip
-if (Test-Path $proj) { Remove-Item $proj -Recurse -Force }
-Expand-Archive $zip -DestinationPath $parent -Force
+$repo = "https://github.com/diebugger-tech/ModellGarage.git"
+if (Get-Command git -ErrorAction SilentlyContinue) {
+  $proj = "$parent\ModellGarage"
+  if (Test-Path "$proj\.git") {
+    Info "Aktualisiere vorhandenes Projekt (git pull) ..."
+    Set-Location $proj; git pull
+  } else {
+    Info "Klone ModellGarage (git) ..."
+    if (Test-Path $proj) { Remove-Item $proj -Recurse -Force }
+    git clone $repo $proj
+  }
+} else {
+  Info "Lade ModellGarage als ZIP herunter (ohne git) ..."
+  $zip = "$env:TEMP\modellgarage.zip"
+  $proj = "$parent\ModellGarage-main"
+  Invoke-WebRequest "https://github.com/diebugger-tech/ModellGarage/archive/refs/heads/main.zip" -OutFile $zip
+  if (Test-Path $proj) { Remove-Item $proj -Recurse -Force }
+  Expand-Archive $zip -DestinationPath $parent -Force
+}
 
 # 5. Starten (baut Container, wartet, oeffnet den Browser)
 Ok "Alles bereit - starte die App ..."
