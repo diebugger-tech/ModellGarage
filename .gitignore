@@ -76,6 +76,7 @@ modellgarage.db
 *.db-wal
 *.db-shm
 data/
+backups/
 
 # === UPLOADED / DOWNLOADED MEDIA =============================================
 # eBay-Fotos werden lokal gespeichert, aber NICHT ins Repo

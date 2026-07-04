@@ -15,6 +15,7 @@
   let fHersteller = $state('');
   let fZustand = $state('');
   let fJahr = $state('');
+  let fQualitaet = $state('');
   let sort = $state('id');
   let order = $state('asc');
   let offset = $state(0);
@@ -24,7 +25,7 @@
 
   async function ladeListe() {
     loading = true;
-    const data = await getModelle({ q, hersteller: fHersteller, zustand: fZustand, jahr: fJahr, limit, offset, sort, order });
+    const data = await getModelle({ q, hersteller: fHersteller, zustand: fZustand, jahr: fJahr, qualitaet: fQualitaet, limit, offset, sort, order });
     modelle = data.items;
     total = data.total;
     loading = false;
@@ -78,6 +79,12 @@
     <select bind:value={fJahr} onchange={filterAendern}>
       <option value="">Alle Kaufjahre</option>
       {#each jahre as jahr}<option value={jahr}>{jahr}</option>{/each}
+    </select>
+    <select bind:value={fQualitaet} onchange={filterAendern}>
+      <option value="">Datenqualität: alle</option>
+      <option value="ohne_foto">ohne Foto</option>
+      <option value="ohne_zustand">ohne Zustand</option>
+      <option value="ohne_kaufdatum">ohne Kaufdatum</option>
     </select>
     <select bind:value={sort} onchange={filterAendern}>
       <option value="id">Sortierung: Standard</option>

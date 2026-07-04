@@ -1,13 +1,15 @@
 <script>
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { getHersteller, erstelleModellVoll, ebayParseText, checkDublette } from '$lib/api.js';
+  import { getHersteller, erstelleModellVoll, ebayParseText, checkDublette, getKatalogKandidaten } from '$lib/api.js';
 
   let hersteller = $state([]);
   let laeuft = $state(false);
   let fehler = $state(null);
   let dublettenWarnung = $state(null);
   let dubTimer;
+  let katalogKandidaten = $state([]);
+  let katTimer;
 
   // eBay-Schnellerfassung
   let ebayTitel = $state('');
@@ -66,6 +68,7 @@
     clearTimeout(dubTimer);
     dublettenWarnung = null;
     const h = f.hersteller.trim(), nr = f.katalog_nr.trim();
+    sucheKatalog();
     if (!h || !nr) return;
     dubTimer = setTimeout(async () => {
       try {
@@ -75,6 +78,30 @@
         }
       } catch { /* ignore */ }
     }, 350);
+  }
+
+  // Katalog-Abgleich: Top-3-Kandidaten zur Nr./zum Typ vorschlagen.
+  function sucheKatalog() {
+    clearTimeout(katTimer);
+    const h = f.hersteller.trim(), nr = f.katalog_nr.trim(), typ = f.typ.trim();
+    if (!nr && !typ) { katalogKandidaten = []; return; }
+    katTimer = setTimeout(async () => {
+      try {
+        katalogKandidaten = await getKatalogKandidaten({ hersteller: h, katalog_nr: nr, typ });
+      } catch { katalogKandidaten = []; }
+    }, 350);
+  }
+
+  function uebernehmeKandidat(k) {
+    f.hersteller = k.hersteller;
+    f.katalog_nr = k.katalog_nr;
+    f.typ = k.typ;
+    if (k.serie) f.serie = k.serie;
+    if (k.min_euro != null) f.min_euro = k.min_euro;
+    if (k.max_euro != null) f.max_euro = k.max_euro;
+    if (k.quelle) f.quelle = k.quelle;
+    katalogKandidaten = [];
+    pruefeDublette();
   }
 
   async function speichern() {
@@ -195,9 +222,23 @@
     {#if dublettenWarnung}
       <div class="dub-warn">⚠ {dublettenWarnung} <span style="color:var(--ink-soft)">— Dublette ist erlaubt, nur zur Info.</span></div>
     {/if}
+    {#if katalogKandidaten.length}
+      <div class="kat-box">
+        <div class="kat-head">Katalog-Kandidaten — anklicken übernimmt Typ, Serie und Werte:</div>
+        {#each katalogKandidaten as k}
+          <button type="button" class="kat-row" onclick={() => uebernehmeKandidat(k)}>
+            <span class="kat-nr">{k.hersteller} {k.katalog_nr}</span>
+            <span class="kat-typ">{k.typ}{#if k.serie} · {k.serie}{/if}</span>
+            <span class="kat-wert">
+              {#if k.min_euro != null || k.max_euro != null}{k.min_euro ?? '?'}–{k.max_euro ?? '?'} €{/if}
+            </span>
+          </button>
+        {/each}
+      </div>
+    {/if}
     <div class="row">
       <label>Typ / Bezeichnung *
-        <input bind:value={f.typ} placeholder="VW Käfer, ovale Heckscheibe" />
+        <input bind:value={f.typ} oninput={sucheKatalog} placeholder="VW Käfer, ovale Heckscheibe" />
       </label>
       <label>Serie
         <input bind:value={f.serie} placeholder="z.B. UV500, W300" />
@@ -247,6 +288,13 @@
 <style>
   .form { display: flex; flex-direction: column; gap: 16px; }
   .sec { font-family: var(--serif); font-size: 1.15rem; color: var(--accent); margin-top: 10px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+  .kat-box { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+  .kat-head { font-size: .8rem; color: var(--ink-soft); margin-bottom: 2px; }
+  .kat-row { display: grid; grid-template-columns: minmax(90px,auto) 1fr auto; align-items: center; gap: 12px; text-align: left; background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: .9rem; color: var(--ink); transition: border-color .12s; }
+  .kat-row:hover { border-color: var(--accent); }
+  .kat-nr { font-variant-numeric: tabular-nums; color: var(--accent); }
+  .kat-typ { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .kat-wert { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .row:has(label:nth-child(3)) { grid-template-columns: 1fr 1fr 1fr; }
   label { display: flex; flex-direction: column; gap: 6px; font-size: .82rem; color: var(--ink-soft); }

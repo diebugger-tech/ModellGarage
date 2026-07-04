@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.database import get_session
-from app.models import Katalog, Modell
+from app.models import Foto, Katalog, Modell
 from app.schemas import (
     ModellCreate,
     ModellCreateVoll,
@@ -26,6 +26,11 @@ async def liste_modelle(
     hersteller: str | None = None,
     zustand: str | None = None,
     jahr: str | None = Query(None, description="Kaufjahr-Filter, z.B. '2015'"),
+    qualitaet: str | None = Query(
+        None,
+        pattern="^(ohne_foto|ohne_zustand|ohne_kaufdatum)$",
+        description="Datenqualitäts-Filter",
+    ),
     limit: int = Query(50, le=200),
     offset: int = 0,
     sort: str = Query("id", pattern="^(id|bezahlt|schaetzwert|kaufdatum)$"),
@@ -52,6 +57,14 @@ async def liste_modelle(
         filters.append(Modell.zustand == zustand)
     if jahr:
         filters.append(func.substr(Modell.kaufdatum, 1, 4) == jahr)
+    if qualitaet == "ohne_zustand":
+        filters.append(Modell.zustand.is_(None))
+    elif qualitaet == "ohne_kaufdatum":
+        filters.append(Modell.kaufdatum.is_(None))
+    elif qualitaet == "ohne_foto":
+        filters.append(
+            ~select(Foto.id).where(Foto.modell_id == Modell.id).exists()
+        )
 
     for f in filters:
         stmt = stmt.where(f)

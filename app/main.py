@@ -12,6 +12,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.core.backup import rotiere_backup
 from app.core.config import settings
 from app.core.database import init_db
 from app.routers import (
@@ -19,6 +20,7 @@ from app.routers import (
     export,
     extras,
     fotos,
+    katalog,
     konvolut,
     modelle,
     statistik,
@@ -30,6 +32,11 @@ from app.routers import (
 async def lifespan(app: FastAPI):  # noqa: ANN201
     await init_db()
     settings.media_dir.mkdir(parents=True, exist_ok=True)
+    # Rotierendes Tages-Backup der DB (Fehler dürfen den Start nie blockieren).
+    try:
+        rotiere_backup(settings.sqlite_path)
+    except OSError:
+        pass
     yield
 
 
@@ -43,6 +50,7 @@ app.include_router(ebay.router)
 app.include_router(konvolut.router)
 app.include_router(extras.router)
 app.include_router(wunsch.router)
+app.include_router(katalog.router)
 
 
 @app.get("/api/health")
