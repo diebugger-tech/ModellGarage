@@ -28,17 +28,34 @@ if (-not (Get-Command podman -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
-# 2. Podman-Maschine starten (Windows braucht eine leichte VM)
+# 2. Podman-Maschine sicherstellen (einrichten falls noetig) + starten
+$machines = (podman machine list --format "{{.Name}}" 2>$null)
+if (-not $machines) {
+    Write-Host "Richte die Podman-Maschine ein (einmalig) ..." -ForegroundColor Yellow
+    podman machine init
+}
 $running = (podman machine list --format "{{.Running}}" 2>$null) -join " "
-if ($running -notmatch "true|running") {
+if ($running -notmatch "true|running|Currently") {
     Write-Host "Starte die Podman-Maschine ..." -ForegroundColor Yellow
     try { podman machine start | Out-Null } catch { }
 }
 
-# 3. Container bauen + starten
-Write-Host "Baue und starte den Container." -ForegroundColor Yellow
-Write-Host "(Der erste Build dauert ein paar Minuten - Node + Python werden geladen.)" -ForegroundColor DarkGray
-podman compose up -d --build
+# 3. Image bauen (ohne 'podman compose' - braucht keinen Extra-Provider)
+Write-Host "Baue das Image (erster Build dauert ein paar Minuten) ..." -ForegroundColor Yellow
+podman build -t modellgarage:latest -f Containerfile .
+
+# 4. Volumes + Container starten
+podman volume create modellgarage-data 2>$null | Out-Null
+podman volume create modellgarage-media 2>$null | Out-Null
+podman rm -f modellgarage 2>$null | Out-Null
+podman run -d --name modellgarage --restart=unless-stopped `
+    -p 8003:8003 `
+    -v modellgarage-data:/app/data `
+    -v modellgarage-media:/app/media `
+    -e APP_ENV=production `
+    -e "DATABASE_URL=sqlite+aiosqlite:////app/data/modellgarage.db" `
+    -e MEDIA_DIR=/app/media `
+    modellgarage:latest
 
 # 4. Auf Erreichbarkeit warten
 $url = "http://localhost:8003"
@@ -56,10 +73,10 @@ if ($ok) {
     Write-Host "ModellGarage laeuft:  $url" -ForegroundColor Green
 } else {
     Write-Host "Container gestartet, aber $url antwortet noch nicht." -ForegroundColor Yellow
-    Write-Host "Logs ansehen:  podman compose logs -f" -ForegroundColor Gray
+    Write-Host "Logs ansehen:  podman logs -f modellgarage" -ForegroundColor Gray
 }
 Write-Host "Excel importieren:    im Browser auf 'Import' gehen und die .xlsx-Datei hochladen." -ForegroundColor Green
-Write-Host "Stoppen:              stop-podman.bat  (oder: podman compose down)" -ForegroundColor Gray
+Write-Host "Stoppen:              stop-podman.bat  (oder: podman rm -f modellgarage)" -ForegroundColor Gray
 Write-Host ""
 
 try { Start-Process $url } catch { }
