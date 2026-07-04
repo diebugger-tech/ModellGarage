@@ -78,6 +78,12 @@ Fenster, ein Port (`http://localhost:8003`). Keine Python-/Node-Installation nö
    DB und Fotos bleiben in den Podman-Volumes erhalten — beim nächsten Start
    wieder da.
 
+> **Erst mal ausprobieren?** Ohne eigene Daten kannst du die mitgelieferte
+> Beispiel-Sammlung **`examples/beispiel-sammlung.xlsx`** importieren (18 fiktive
+> Modelle von Wiking, Siku, Majorette u. a.) — so siehst du sofort, wie die App
+> mit Galerie, Statistik, Lücken und Wunschliste funktioniert. Die Datei enthält
+> nur erfundene Beispieldaten.
+
 > Hinweis: Falls `podman compose` meldet, dass „compose" fehlt, in Podman Desktop
 > unter *Settings → Extensions* „Compose" aktivieren (oder `podman-compose`
 > nachinstallieren). Die Skripte müssen dafür nicht geändert werden.
