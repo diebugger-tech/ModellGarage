@@ -7,10 +7,23 @@ Set-Location -Path $PSScriptRoot
 
 Write-Host "== ModellGarage - Podman-Start ==" -ForegroundColor Cyan
 
-# 1. Podman installiert?
+# 1. Podman verfuegbar? Falls gerade erst installiert, PATH auffrischen + suchen.
 if (-not (Get-Command podman -ErrorAction SilentlyContinue)) {
-    Write-Host "Podman wurde nicht gefunden." -ForegroundColor Red
-    Write-Host "Bitte Podman Desktop installieren: https://podman.io/getting-started/installation" -ForegroundColor Yellow
+    $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
+                [Environment]::GetEnvironmentVariable("Path", "User")
+    foreach ($d in @("C:\Program Files\RedHat\Podman\usr\bin", "C:\Program Files\RedHat\Podman")) {
+        if (Test-Path $d) { $env:Path += ";$d" }
+    }
+    if (-not (Get-Command podman -ErrorAction SilentlyContinue)) {
+        $exe = Get-ChildItem "C:\Program Files\RedHat" -Recurse -Filter podman.exe `
+            -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($exe) { $env:Path += ";" + $exe.DirectoryName }
+    }
+}
+if (-not (Get-Command podman -ErrorAction SilentlyContinue)) {
+    Write-Host "Podman-CLI wurde nicht gefunden." -ForegroundColor Red
+    Write-Host "Bitte einmal installieren:  winget install -e --id RedHat.Podman" -ForegroundColor Yellow
+    Write-Host "Danach PowerShell neu oeffnen und start-podman.bat erneut ausfuehren." -ForegroundColor Yellow
     Read-Host "Enter zum Beenden"
     exit 1
 }
