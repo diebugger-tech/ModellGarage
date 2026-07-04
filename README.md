@@ -53,7 +53,25 @@ Fenster, ein Port (`http://localhost:8003`). Keine Python-/Node-Installation nö
 2. **Projekt holen:** auf GitHub den grünen **„Code"**-Button → **„Download ZIP"**,
    dann entpacken — oder `git clone`.
 
-### Windows
+### Windows — schnellste Variante (ein Befehl)
+
+Der bequemste Weg: **ein** Befehl installiert Podman, holt das Projekt (ohne
+`git`, per ZIP) und startet die App. **PowerShell als Administrator** öffnen
+(Startmenü → „PowerShell" → Rechtsklick → *Als Administrator ausführen*) und
+diese Zeile einfügen:
+
+```powershell
+irm https://raw.githubusercontent.com/diebugger-tech/ModellGarage/main/install-windows.ps1 | iex
+```
+
+Der Installer meldet, falls einmal ein **Neustart** nötig ist (WSL2-Ersteinrichtung)
+— dann einfach nach dem Neustart denselben Befehl noch einmal einfügen. Am Ende
+öffnet sich der Browser auf http://localhost:8003.
+
+### Windows — manuell (Doppelklick)
+
+Alternativ ohne den Installer, wenn Podman Desktop schon läuft und das Projekt
+als ZIP heruntergeladen ist:
 
 3. Im entpackten Ordner **`start-podman.bat`** doppelklicken.
    Der erste Start baut den Container (ein paar Minuten) und öffnet dann den

@@ -34,7 +34,21 @@ window, one port (`http://localhost:8003`). No Python/Node install required.
 2. **Get the project:** on GitHub click the green **"Code"** button → **"Download
    ZIP"**, then unzip — or `git clone`.
 
-### Windows
+### Windows — fastest (one command)
+
+Easiest path: **one** command installs Podman, fetches the project (no `git`,
+via ZIP) and starts the app. Open **PowerShell as Administrator** (Start → type
+"PowerShell" → right-click → *Run as administrator*) and paste:
+
+```powershell
+irm https://raw.githubusercontent.com/diebugger-tech/ModellGarage/main/install-windows.ps1 | iex
+```
+
+The installer tells you if a **reboot** is needed once (first-time WSL2 setup) —
+just paste the same command again after rebooting. At the end the browser opens
+at http://localhost:8003.
+
+### Windows — manual (double-click)
 
 3. In the unzipped folder, double-click **`start-podman.bat`**.
    The first start builds the container (a few minutes) and then opens the
