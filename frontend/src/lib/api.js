@@ -11,11 +11,12 @@ export function getStatistik() {
   return j('/api/statistik');
 }
 
-export function getModelle({ q = '', hersteller = '', zustand = '', limit = 24, offset = 0, sort = 'id', order = 'asc' } = {}) {
+export function getModelle({ q = '', hersteller = '', zustand = '', jahr = '', limit = 24, offset = 0, sort = 'id', order = 'asc' } = {}) {
   const p = new URLSearchParams();
   if (q) p.set('q', q);
   if (hersteller) p.set('hersteller', hersteller);
   if (zustand) p.set('zustand', zustand);
+  if (jahr) p.set('jahr', jahr);
   p.set('limit', limit);
   p.set('offset', offset);
   p.set('sort', sort);
@@ -29,6 +30,10 @@ export function getModell(id) {
 
 export function getHersteller() {
   return j('/api/statistik/hersteller');
+}
+
+export function getJahre() {
+  return j('/api/statistik/jahre');
 }
 
 export function euro(v) {
@@ -116,6 +121,34 @@ export async function checkDublette(hersteller, katalog_nr) {
 
 export function getWunschliste(hersteller = 'Wiking') {
   return j('/api/extras/wunschliste?hersteller=' + encodeURIComponent(hersteller));
+}
+
+// Manuelle Wunschliste (Merkliste)
+export function getWunsch(status = '') {
+  return j('/api/wunsch' + (status ? '?status=' + encodeURIComponent(status) : ''));
+}
+export async function createWunsch(daten) {
+  const r = await fetch('/api/wunsch', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(daten)
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.detail || 'Fehler');
+  return d;
+}
+export async function updateWunsch(id, daten) {
+  const r = await fetch('/api/wunsch/' + id, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(daten)
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.detail || 'Fehler');
+  return d;
+}
+export async function deleteWunsch(id) {
+  const r = await fetch('/api/wunsch/' + id, { method: 'DELETE' });
+  if (!r.ok) throw new Error('Löschen fehlgeschlagen');
+  return true;
 }
 
 // Konvolut
