@@ -1,0 +1,122 @@
+# =============================================================================
+# ModellGarage — Global + Stack-spezifisch
+# =============================================================================
+
+# === PYTHON / FASTAPI ========================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+/lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+pip-log.txt
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# === ENV / SECRETS ===========================================================
+# eBay Developer Keys / Tokens NIEMALS committen
+.env
+.env.*
+*.env
+!.env.example
+*.key
+*.pem
+*.crt
+*.p12
+*.der
+secrets/
+credentials/
+ebay_token.json
+
+# === NODE / SVELTEKIT ========================================================
+node_modules/
+.svelte-kit/
+frontend/build/
+frontend/.svelte-kit/
+frontend/node_modules/
+# package-lock.json wird BEWUSST committet (reproduzierbare Builds beim Clone)
+yarn.lock
+pnpm-lock.yaml
+.vite/
+
+# === DATABASE ================================================================
+*.db
+*.sqlite
+*.sqlite3
+modellgarage.db
+*.db-wal
+*.db-shm
+data/
+
+# === UPLOADED / DOWNLOADED MEDIA =============================================
+# eBay-Fotos werden lokal gespeichert, aber NICHT ins Repo
+media/
+uploaded_media_*
+
+# === LOCAL DATA / IMPORTS ====================================================
+# Excel-Quelldateien & Katalog-CSVs (privat, groß)
+*.xlsx
+*.xls
+*.ods
+*.csv
+.~lock.*#
+
+# === LOGS / TEMP =============================================================
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# === CONTAINER / PODMAN =====================================================
+docker-compose.override.yml
+compose.override.yml
+.podman/
+*.tar
+
+# === IDE ====================================================================
+.idea/
+.claude/
+
+# === BACKUPS / SCRATCH ======================================================
+*.bak
+scratch/
+fix_*.py
+patch_*.py
+future.md
+todo.md
+
+# === DEV RUNTIME (PID-Dateien, Logs von make start) =========================
+.run/

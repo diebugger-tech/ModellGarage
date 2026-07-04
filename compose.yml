@@ -1,0 +1,27 @@
+# ModellGarage — Podman/Docker Compose
+# Start:  podman compose up -d --build
+# Stop:   podman compose down
+# Läuft unter Podman auf Windows (Podman Desktop / WSL2).
+
+services:
+  modellgarage:
+    build:
+      context: .
+      dockerfile: Containerfile
+    image: modellgarage:latest
+    container_name: modellgarage
+    ports:
+      - "8003:8003"
+    volumes:
+      # Persistenz: DB + Fotos überleben Container-Rebuilds
+      - modellgarage-data:/app/data
+      - modellgarage-media:/app/media
+    environment:
+      - APP_ENV=production
+      - DATABASE_URL=sqlite+aiosqlite:////app/data/modellgarage.db
+      - MEDIA_DIR=/app/media
+    restart: unless-stopped
+
+volumes:
+  modellgarage-data:
+  modellgarage-media:
