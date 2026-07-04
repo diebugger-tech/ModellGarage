@@ -55,18 +55,26 @@ Fenster, ein Port (`http://localhost:8003`). Keine Python-/Node-Installation nö
 
 ### Windows — schnellste Variante (ein Befehl)
 
-Der bequemste Weg: **ein** Befehl installiert Podman, holt das Projekt (ohne
-`git`, per ZIP) und startet die App. **PowerShell als Administrator** öffnen
-(Startmenü → „PowerShell" → Rechtsklick → *Als Administrator ausführen*) und
-diese Zeile einfügen:
+Der bequemste Weg: **ein** Befehl richtet alles ein. **PowerShell als
+Administrator** öffnen (Startmenü → „PowerShell" → Rechtsklick → *Als
+Administrator ausführen*) und diese Zeile einfügen:
 
 ```powershell
 irm https://raw.githubusercontent.com/diebugger-tech/ModellGarage/main/install-windows.ps1 | iex
 ```
 
-Der Installer meldet, falls einmal ein **Neustart** nötig ist (WSL2-Ersteinrichtung)
-— dann einfach nach dem Neustart denselben Befehl noch einmal einfügen. Am Ende
-öffnet sich der Browser auf http://localhost:8003.
+Dieser eine Befehl installiert automatisch alles Nötige:
+
+- **Podman Desktop** (die Container-Umgebung)
+- **WSL2** (das Linux-Subsystem, das Podman auf Windows braucht) — das ist meist
+  noch nicht vorhanden und wird hier mit eingerichtet
+- **Git** (zum Laden und späteren Aktualisieren des Projekts)
+- lädt **ModellGarage** herunter und **startet** die App
+
+Wichtig: Wird WSL2 zum ersten Mal installiert, verlangt Windows **einen Neustart**.
+Der Installer sagt das an — nach dem Neustart einfach **denselben Befehl noch
+einmal** in der Administrator-PowerShell einfügen, dann läuft er komplett durch.
+Am Ende öffnet sich der Browser auf http://localhost:8003.
 
 ### Windows — manuell (Doppelklick)
 
