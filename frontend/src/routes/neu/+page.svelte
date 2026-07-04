@@ -54,6 +54,13 @@
 
   function num(v) { return v === '' || v == null ? null : Number(v); }
 
+  // Textarea wächst automatisch mit dem Inhalt (kein Maus-Ziehen nötig).
+  function autoGrow(e) {
+    const el = e.target;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 600) + 'px';
+  }
+
   // Live-Dublettencheck bei Hersteller + Katalog-Nr.
   function pruefeDublette() {
     clearTimeout(dubTimer);
@@ -153,9 +160,10 @@
     />
     <textarea
       bind:value={ebayBeschreibung}
-      rows="6"
+      rows="5"
+      oninput={autoGrow}
       placeholder="optional: Artikelbeschreibung einfügen — hier stehen oft Katalog-Nr. (z.B. Wiking Nr. 30/6K.) und Farbe"
-      style="margin-top:8px; resize:vertical; min-height:120px"
+      style="margin-top:8px; resize:both; min-height:130px; max-width:100%; overflow:auto"
     ></textarea>
     <div style="display:flex; gap:10px; align-items:center; margin-top:10px">
       <button class="btn" onclick={ebayUebernehmen} disabled={ebayLaeuft || !ebayTitel.trim()}>
