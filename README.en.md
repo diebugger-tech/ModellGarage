@@ -57,12 +57,30 @@ The installer says so — after rebooting, just paste **the same command again**
 the Administrator PowerShell and it runs all the way through. At the end the
 browser opens at http://localhost:8003.
 
-### Windows — manual (double-click)
+### Windows — manual (if you don't use the installer)
 
-3. In the unzipped folder, double-click **`start-podman.bat`**.
-   The first start builds the container (a few minutes) and then opens the
-   browser at http://localhost:8003.
-4. Stop: double-click **`stop-podman.bat`**.
+If you downloaded and unzipped the project as a **ZIP**:
+
+3. **Install the Podman CLI** (once, in an Administrator PowerShell) — there is
+   **no `make`** on Windows, hence the container route:
+   ```powershell
+   winget install -e --id RedHat.Podman
+   ```
+   Then **close and reopen** PowerShell (so `podman` is found).
+4. **Go into the project folder.** The ZIP folder is usually called
+   `ModellGarage-main` (possibly nested twice). Easiest: open the folder that
+   contains `start-podman.bat` in Explorer and **double-click `start-podman.bat`**.
+   Or in PowerShell, e.g.:
+   ```powershell
+   cd "$env:USERPROFILE\Downloads\ModellGarage-main\ModellGarage-main"
+   .\start-podman.bat
+   ```
+   The first run sets up the Podman machine, builds the container (a few minutes)
+   and opens the browser at http://localhost:8003.
+5. **Stop:** double-click **`stop-podman.bat`** (or `.\stop-podman.bat`).
+
+> Note: the `make …` commands below are for development on **Linux/macOS** only.
+> On Windows always use the `*-podman.bat` scripts or the one-command installer.
 
 ### macOS / Linux
 

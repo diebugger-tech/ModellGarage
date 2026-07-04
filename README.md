@@ -76,15 +76,31 @@ Der Installer sagt das an — nach dem Neustart einfach **denselben Befehl noch
 einmal** in der Administrator-PowerShell einfügen, dann läuft er komplett durch.
 Am Ende öffnet sich der Browser auf http://localhost:8003.
 
-### Windows — manuell (Doppelklick)
+### Windows — manuell (falls du den Installer nicht nutzt)
 
-Alternativ ohne den Installer, wenn Podman Desktop schon läuft und das Projekt
-als ZIP heruntergeladen ist:
+Wenn du das Projekt als **ZIP** heruntergeladen und entpackt hast:
 
-3. Im entpackten Ordner **`start-podman.bat`** doppelklicken.
-   Der erste Start baut den Container (ein paar Minuten) und öffnet dann den
-   Browser auf http://localhost:8003.
-4. Stoppen: **`stop-podman.bat`** doppelklicken.
+3. **Podman-CLI installieren** (einmalig, in einer Administrator-PowerShell) —
+   `make` gibt es unter Windows **nicht**, daher der Container-Weg:
+   ```powershell
+   winget install -e --id RedHat.Podman
+   ```
+   Danach PowerShell **schließen und neu öffnen** (damit `podman` gefunden wird).
+4. **In den Projektordner wechseln.** Der ZIP-Ordner heißt meist
+   `ModellGarage-main` (ggf. doppelt verschachtelt). Am einfachsten: den Ordner im
+   Explorer öffnen, in dem `start-podman.bat` liegt, und dort **`start-podman.bat`
+   doppelklicken**. Oder in der PowerShell dorthin wechseln, z. B.:
+   ```powershell
+   cd "$env:USERPROFILE\Downloads\ModellGarage-main\ModellGarage-main"
+   .\start-podman.bat
+   ```
+   Der erste Start richtet die Podman-Maschine ein, baut den Container (ein paar
+   Minuten) und öffnet den Browser auf http://localhost:8003.
+5. **Stoppen:** **`stop-podman.bat`** doppelklicken (oder `.\stop-podman.bat`).
+
+> Hinweis: Die `make …`-Befehle weiter unten sind nur für Entwicklung unter
+> **Linux/macOS**. Unter Windows immer die `*-podman.bat`-Skripte bzw. den
+> Ein-Kommando-Installer verwenden.
 
 ### macOS / Linux
 
