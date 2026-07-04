@@ -39,6 +39,16 @@
   function filterAendern() { offset = 0; ladeListe(); }
   function seite(delta) { offset = Math.max(0, offset + delta * limit); ladeListe(); }
 
+  let gesamtSeiten = $derived(Math.max(1, Math.ceil(total / limit)));
+  let aktuelleSeite = $derived(Math.floor(offset / limit) + 1);
+  let springZu = $state('');
+  function geheZuSeite(n) {
+    const p = Math.min(Math.max(1, Math.floor(n) || 1), gesamtSeiten);
+    offset = (p - 1) * limit;
+    springZu = '';
+    ladeListe();
+  }
+
   onMount(async () => {
     [stats, hersteller, jahre] = await Promise.all([getStatistik(), getHersteller(), getJahre()]);
     await ladeListe();
@@ -125,9 +135,24 @@
     </div>
 
     <div class="pager">
+      <button onclick={() => geheZuSeite(1)} disabled={aktuelleSeite === 1} title="Erste Seite">⏮</button>
       <button onclick={() => seite(-1)} disabled={offset === 0}>← Zurück</button>
-      <span>{offset + 1}–{Math.min(offset + limit, total)} von {total.toLocaleString('de-DE')}</span>
+      <span class="pager-info">
+        {offset + 1}–{Math.min(offset + limit, total)} von {total.toLocaleString('de-DE')}
+        <span class="pager-seite">
+          · Seite
+          <input
+            type="number" min="1" max={gesamtSeiten}
+            placeholder={aktuelleSeite}
+            bind:value={springZu}
+            onkeydown={(e) => e.key === 'Enter' && springZu && geheZuSeite(Number(springZu))}
+            style="width:4.5em; padding:4px 8px; border:1px solid var(--line); border-radius:8px; background:var(--bg-card); color:var(--ink); text-align:center; font-variant-numeric:tabular-nums"
+          />
+          / {gesamtSeiten.toLocaleString('de-DE')}
+        </span>
+      </span>
       <button onclick={() => seite(1)} disabled={offset + limit >= total}>Weiter →</button>
+      <button onclick={() => geheZuSeite(gesamtSeiten)} disabled={aktuelleSeite >= gesamtSeiten} title="Letzte Seite">⏭</button>
     </div>
   {/if}
 </div>
