@@ -17,6 +17,14 @@
   let speichert = $state(false);
   let editFehler = $state(null);
 
+  // Lightbox
+  let lightbox = $state(null); // index des angezeigten Fotos oder null
+
+  function oeffneLightbox(i) { lightbox = i; }
+  function schliesseLightbox() { lightbox = null; }
+  function naechstes() { if (lightbox != null) lightbox = (lightbox + 1) % fotos.length; }
+  function voriges() { if (lightbox != null) lightbox = (lightbox - 1 + fotos.length) % fotos.length; }
+
   async function ladeFotos(id) { fotos = await getFotos(id); }
 
   onMount(async () => {
@@ -117,15 +125,19 @@
       <div>
         <div class="detail-photo">
           {#if fotos.length > 0}
-            <img src={'/' + fotos[0].pfad} alt={modell.katalog?.typ} />
+            <button class="photo-btn" onclick={() => oeffneLightbox(0)} aria-label="Foto vergrößern">
+              <img src={'/' + fotos[0].pfad} alt={modell.katalog?.typ} />
+            </button>
           {:else}
             <span class="placeholder">{initial(modell.katalog?.typ)}</span>
           {/if}
         </div>
         <div class="fotos">
-          {#each fotos as ft (ft.id)}
+          {#each fotos as ft, idx (ft.id)}
             <div class="foto-thumb">
-              <img src={'/' + ft.pfad} alt="Foto" />
+              <button class="photo-btn" onclick={() => oeffneLightbox(idx)} aria-label="Foto vergrößern">
+                <img src={'/' + ft.pfad} alt="Foto" />
+              </button>
               <button class="del" onclick={() => entferneFoto(ft.id)} title="Löschen">×</button>
             </div>
           {/each}
@@ -199,10 +211,37 @@
   {/if}
 </div>
 
+<!-- Lightbox-Overlay -->
+{#if lightbox != null && fotos[lightbox]}
+  <div class="lightbox" onclick={schliesseLightbox} role="presentation">
+    <button class="lb-close" onclick={schliesseLightbox} aria-label="Schließen">×</button>
+    {#if fotos.length > 1}
+      <button class="lb-nav lb-prev" onclick={(ev) => { ev.stopPropagation(); voriges(); }} aria-label="Voriges">‹</button>
+      <button class="lb-nav lb-next" onclick={(ev) => { ev.stopPropagation(); naechstes(); }} aria-label="Nächstes">›</button>
+    {/if}
+    <img src={'/' + fotos[lightbox].pfad} alt="Vergrößert" />
+    {#if fotos.length > 1}
+      <div class="lb-counter">{lightbox + 1} / {fotos.length}</div>
+    {/if}
+  </div>
+{/if}
+
+<svelte:window onkeydown={(ev) => {
+  if (lightbox == null) return;
+  if (ev.key === 'Escape') schliesseLightbox();
+  else if (ev.key === 'ArrowRight') naechstes();
+  else if (ev.key === 'ArrowLeft') voriges();
+}} />
+
 <style>
+  .photo-btn {
+    padding: 0; border: none; background: none; cursor: zoom-in;
+    display: block; width: 100%; height: 100%;
+  }
+  .photo-btn img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
   .fotos { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
   .foto-thumb { position: relative; width: 72px; height: 72px; border-radius: 8px; overflow: hidden; box-shadow: var(--shadow); }
-  .foto-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .foto-thumb .photo-btn { width: 72px; height: 72px; }
   .foto-thumb .del {
     position: absolute; top: 2px; right: 2px; width: 20px; height: 20px;
     border: none; border-radius: 50%; background: rgba(26,26,26,.7); color: #fff;
@@ -223,4 +262,29 @@
     border-radius: 9px; color: var(--ink); font-size: 1rem; outline: none;
   }
   .editform input:focus, .editform select:focus, .editform textarea:focus { border-color: var(--accent); }
+
+  .lightbox {
+    position: fixed; inset: 0; z-index: 100; background: rgba(20,18,15,.92);
+    display: flex; align-items: center; justify-content: center; padding: 40px;
+    backdrop-filter: blur(4px);
+  }
+  .lightbox img { max-width: 90vw; max-height: 88vh; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  .lb-close {
+    position: absolute; top: 22px; right: 28px; width: 44px; height: 44px;
+    border: none; border-radius: 50%; background: rgba(255,255,255,.12); color: #fff;
+    font-size: 28px; cursor: pointer; line-height: 1;
+  }
+  .lb-close:hover { background: rgba(255,255,255,.22); }
+  .lb-nav {
+    position: absolute; top: 50%; transform: translateY(-50%); width: 52px; height: 52px;
+    border: none; border-radius: 50%; background: rgba(255,255,255,.12); color: #fff;
+    font-size: 34px; cursor: pointer; line-height: 1;
+  }
+  .lb-nav:hover { background: rgba(255,255,255,.22); }
+  .lb-prev { left: 24px; }
+  .lb-next { right: 24px; }
+  .lb-counter {
+    position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%);
+    color: rgba(255,255,255,.75); font-size: .9rem; letter-spacing: .1em;
+  }
 </style>

@@ -12,6 +12,10 @@
   bedienbare App — durchsuchbar, mit Fotos, Konvolut-Handling und
   Wertermittlung über Sammlerkataloge.
 - **Single-User** — ein Sammler, eine Instanz. Kein Multi-Tenant, kein Login.
+  Läuft nur lokal auf seinem Rechner (kein Internet-Exposé). **Auth ist explizit
+  NICHT gewünscht.** "Sicherheit" heißt hier NUR technische Robustheit:
+  Upload-Validierung (Dateigröße, MIME/Endung, Path-Traversal verhindern),
+  keine unbehandelten Exceptions an den Client. KEINE Logins/Sessions/Tokens.
 - **Leichtgewichtig ist nicht verhandelbar** — serverlose DB (SQLite), dünnes
   Backend, schönes Frontend. Kein MongoDB, kein Postgres, kein Kubernetes.
 - **Zustand ist Handarbeit** — die App schlägt höchstens vor, der Sammler

@@ -29,6 +29,20 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
+/* Dezente Textur: sehr feiner Verlauf + kaum sichtbares Punkt-Raster.
+   Gibt dem Off-White Tiefe, ohne vom Inhalt abzulenken (kein Stockfoto). */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(138,109,59,.06), transparent 60%),
+    radial-gradient(900px 500px at 0% 100%, rgba(74,124,89,.05), transparent 55%),
+    var(--bg);
+  pointer-events: none;
+}
+
 h1, h2, h3 {
   font-family: var(--serif);
   font-weight: 500;

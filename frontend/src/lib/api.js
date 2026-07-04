@@ -102,3 +102,75 @@ export async function ebayParseText(titel, extra = '') {
   if (!r.ok) throw new Error(data.detail || 'Konnte Text nicht auswerten');
   return data;
 }
+
+export function getDashboard() { return j('/api/statistik/dashboard'); }
+
+export function getDubletten(hersteller = '') {
+  return j('/api/extras/dubletten' + (hersteller ? '?hersteller=' + encodeURIComponent(hersteller) : ''));
+}
+
+export async function checkDublette(hersteller, katalog_nr) {
+  const p = new URLSearchParams({ hersteller, katalog_nr });
+  return j('/api/extras/dubletten-check?' + p.toString());
+}
+
+export function getWunschliste(hersteller = 'Wiking') {
+  return j('/api/extras/wunschliste?hersteller=' + encodeURIComponent(hersteller));
+}
+
+// Konvolut
+export function getKonvolute() { return j('/api/konvolut'); }
+export function getKonvolut(id) { return j('/api/konvolut/' + id); }
+export async function erstelleKonvolut(daten) {
+  const r = await fetch('/api/konvolut', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(daten)
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.detail || 'Fehler');
+  return d;
+}
+export async function konvolutKindHinzu(kid, modellId) {
+  const r = await fetch(`/api/konvolut/${kid}/modell/${modellId}`, { method: 'POST' });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.detail || 'Fehler');
+  return d;
+}
+export async function konvolutKindEntfernen(kid, modellId) {
+  const r = await fetch(`/api/konvolut/${kid}/modell/${modellId}`, { method: 'DELETE' });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.detail || 'Fehler');
+  return d;
+}
+export async function konvolutPreiseVerteilen(kid) {
+  const r = await fetch(`/api/konvolut/${kid}/preise-verteilen`, { method: 'POST' });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.detail || 'Fehler');
+  return d;
+}
+export async function loescheKonvolut(kid) {
+  const r = await fetch('/api/konvolut/' + kid, { method: 'DELETE' });
+  return r.ok;
+}
+export async function konvolutKindAnlegen(kid, daten) {
+  const r = await fetch(`/api/konvolut/${kid}/modell-voll`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(daten)
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.detail || 'Fehler');
+  return d;
+}
+export async function uploadKonvolutFoto(kid, file) {
+  const fd = new FormData();
+  fd.append('datei', file);
+  const r = await fetch('/api/konvolut/' + kid + '/foto', { method: 'POST', body: fd });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.detail || 'Upload fehlgeschlagen');
+  return data;
+}
+export async function getKonvolutFotos(kid) {
+  const r = await fetch('/api/konvolut/' + kid + '/fotos');
+  if (!r.ok) return [];
+  return r.json();
+}

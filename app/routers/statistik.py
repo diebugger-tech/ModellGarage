@@ -1,4 +1,4 @@
-"""Router: Statistik & Meta (Hersteller-Liste, Summen)."""
+"""Router: Statistik & Meta — Kennzahlen, Zeitreihen, Verteilungen, Top-Listen."""
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends
@@ -19,7 +19,6 @@ async def statistik(session: AsyncSession = Depends(get_session)) -> StatistikOu
     summe_bezahlt = (await session.execute(select(func.coalesce(func.sum(Modell.bezahlt), 0)))).scalar_one()
     summe_schaetz = (await session.execute(select(func.coalesce(func.sum(Modell.schaetzwert), 0)))).scalar_one()
 
-    # Summe Katalogwerte über die tatsächlich vorhandenen Modelle (via Join)
     smin = (await session.execute(
         select(func.coalesce(func.sum(Katalog.min_euro), 0)).select_from(Modell).join(Katalog)
     )).scalar_one()
@@ -51,3 +50,91 @@ async def hersteller_liste(session: AsyncSession = Depends(get_session)) -> list
         select(Katalog.hersteller).distinct().order_by(Katalog.hersteller)
     )).scalars().all()
     return list(rows)
+
+
+@router.get("/dashboard")
+async def dashboard(session: AsyncSession = Depends(get_session)) -> dict:
+    """Aggregierte Daten für die Statistik-Grafiken (ein Call, viele Charts)."""
+    # --- Zukäufe pro Jahr (Anzahl + Summe bezahlt) ---
+    # kaufdatum ist ISO 'YYYY-MM-DD' → Jahr = substr(1,4)
+    jahr = func.substr(Modell.kaufdatum, 1, 4)
+    jahr_rows = (await session.execute(
+        select(
+            jahr.label("jahr"),
+            func.count(Modell.id),
+            func.coalesce(func.sum(Modell.bezahlt), 0),
+        )
+        .where(Modell.kaufdatum.isnot(None))
+        .where(func.length(Modell.kaufdatum) >= 4)
+        .group_by(jahr)
+        .order_by(jahr)
+    )).all()
+    zukaeufe_pro_jahr = [
+        {"jahr": j, "anzahl": n, "summe": float(s or 0)}
+        for j, n, s in jahr_rows if j and j.isdigit()
+    ]
+
+    # --- Kumulierte Wertentwicklung (Summe bezahlt aufaddiert über Jahre) ---
+    kumuliert = []
+    laufend = 0.0
+    for e in zukaeufe_pro_jahr:
+        laufend += e["summe"]
+        kumuliert.append({"jahr": e["jahr"], "wert": round(laufend, 2)})
+
+    # --- Verteilung nach Hersteller (Top 10 + Rest) ---
+    h_rows = (await session.execute(
+        select(Katalog.hersteller, func.count(Modell.id))
+        .select_from(Modell).join(Katalog)
+        .group_by(Katalog.hersteller)
+        .order_by(func.count(Modell.id).desc())
+    )).all()
+    top_h = [{"name": h, "anzahl": n} for h, n in h_rows[:10]]
+    rest = sum(n for _, n in h_rows[10:])
+    if rest:
+        top_h.append({"name": "Sonstige", "anzahl": rest})
+
+    # --- Zustand-Verteilung ---
+    z_rows = (await session.execute(
+        select(func.coalesce(Modell.zustand, "unbekannt"), func.count(Modell.id))
+        .group_by(Modell.zustand)
+    )).all()
+    zustand = [{"zustand": z, "anzahl": n} for z, n in z_rows]
+
+    # --- Preis-Histogramm (bezahlt, in Klassen) ---
+    grenzen = [0, 5, 10, 20, 40, 75, 150, 10000]
+    labels = ["<5", "5–10", "10–20", "20–40", "40–75", "75–150", "150+"]
+    hist = [0] * (len(grenzen) - 1)
+    preise = (await session.execute(
+        select(Modell.bezahlt).where(Modell.bezahlt.isnot(None))
+    )).scalars().all()
+    for p in preise:
+        if p is None:
+            continue
+        pv = float(p)
+        for i in range(len(grenzen) - 1):
+            if grenzen[i] <= pv < grenzen[i + 1]:
+                hist[i] += 1
+                break
+    histogramm = [{"klasse": labels[i], "anzahl": hist[i]} for i in range(len(labels))]
+
+    # --- Top 10 teuerste Modelle (nach bezahlt) ---
+    top_rows = (await session.execute(
+        select(Modell.id, Katalog.hersteller, Katalog.typ, Modell.bezahlt)
+        .select_from(Modell).join(Katalog)
+        .where(Modell.bezahlt.isnot(None))
+        .order_by(Modell.bezahlt.desc())
+        .limit(10)
+    )).all()
+    top_teuer = [
+        {"id": i, "hersteller": h, "typ": t, "bezahlt": float(b or 0)}
+        for i, h, t, b in top_rows
+    ]
+
+    return {
+        "zukaeufe_pro_jahr": zukaeufe_pro_jahr,
+        "wertentwicklung": kumuliert,
+        "hersteller_verteilung": top_h,
+        "zustand_verteilung": zustand,
+        "preis_histogramm": histogramm,
+        "top_teuerste": top_teuer,
+    }

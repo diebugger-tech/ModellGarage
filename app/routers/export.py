@@ -37,6 +37,10 @@ async def import_excel(
         raise HTTPException(400, "Bitte eine .xlsx-Datei hochladen")
 
     inhalt = await datei.read()
+    if not inhalt:
+        raise HTTPException(400, "Leere Datei")
+    if len(inhalt) > 25 * 1024 * 1024:  # 25 MB reicht für sehr große Sammlungen
+        raise HTTPException(413, "Datei zu groß (max. 25 MB)")
     # openpyxl braucht einen Pfad/Stream — temporär auf Platte
     with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
         tmp.write(inhalt)

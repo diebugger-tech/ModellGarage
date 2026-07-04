@@ -24,6 +24,17 @@ class KonvolutOut(BaseModel):
     datum: str | None = None
 
 
+class KonvolutCreate(BaseModel):
+    quelle: str | None = None
+    gesamtpreis: float | None = None
+    datum: str | None = None
+
+
+class KonvolutMitKindern(KonvolutOut):
+    kinder: list["ModellOut"] = []
+    anzahl_kinder: int = 0
+
+
 class FotoOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -109,3 +120,7 @@ class StatistikOut(BaseModel):
     summe_min: float
     summe_max: float
     hersteller: dict[str, int]
+
+
+# Forward-Ref in KonvolutMitKindern.kinder auflösen (ModellOut ist jetzt bekannt)
+KonvolutMitKindern.model_rebuild()

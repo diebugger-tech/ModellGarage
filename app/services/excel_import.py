@@ -150,7 +150,9 @@ def _ist_leer_oder_summe(zeile: tuple, fmap: dict[str, int]) -> bool:
     if not idv and not typv:
         return True
     for marker in (idv, typv):
-        if marker and marker.strip().lower() in ("nr.", "typ", "euro", "nummer", "gesamt"):
+        if marker and marker.strip().lower() in (
+            "nr.", "typ", "euro", "nummer", "gesamt", "summe", "total", "gesamtwert"
+        ):
             return True
     return False
 
@@ -234,6 +236,28 @@ async def importiere_excel(
             if massstab:
                 bem_teile.append(f"Maßstab: {massstab}")
             voll_bemerkung = "; ".join(bem_teile) or None
+
+            # Hersteller-Normalisierung: bekannte Serien-Namen (z.B. Matchbox Superfast/Lesney)
+            # sollen in `serie` landen, nicht als Hersteller oder in Bemerkung stehen bleiben.
+            SERIEN = {
+                "Matchbox": ["Superfast", "Lesney", "MBX", "Moving Parts", "Matchbox Collectibles"],
+                "Siku": ["Super", "Farmer", "V", "Classic", "Special Edition"],
+                "Majorette": ["Premium", "Racing", "Street Cars"],
+            }
+            serie_extra = None
+            for marke, serien in SERIEN.items():
+                if hersteller == marke or marke.lower() in hersteller.lower():
+                    for s in serien:
+                        if s.lower() in typ.lower() or (bemerkung and s.lower() in bemerkung.lower()) or s.lower() in serie.lower():
+                            serie_extra = s
+                            break
+                if serie_extra:
+                    break
+            if serie_extra:
+                serie = serie_extra
+                # Serie aus Typ/Bemerkung entfernen, damit der Typ nicht "VW Superfast" bleibt
+                typ = re.sub(rf"\b{re.escape(serie_extra)}\b", "", typ, flags=re.IGNORECASE).strip()
+                typ = re.sub(r"\s+", " ", typ)
 
             nr_key = nr or f"?/{serie}/{typ[:24]}"
             cache_key = (hersteller, nr_key)

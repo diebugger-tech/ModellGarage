@@ -1,11 +1,13 @@
 <script>
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { getHersteller, erstelleModellVoll, ebayParseText } from '$lib/api.js';
+  import { getHersteller, erstelleModellVoll, ebayParseText, checkDublette } from '$lib/api.js';
 
   let hersteller = $state([]);
   let laeuft = $state(false);
   let fehler = $state(null);
+  let dublettenWarnung = $state(null);
+  let dubTimer;
 
   // eBay-Schnellerfassung
   let ebayTitel = $state('');
@@ -45,6 +47,22 @@
   }
 
   function num(v) { return v === '' || v == null ? null : Number(v); }
+
+  // Live-Dublettencheck bei Hersteller + Katalog-Nr.
+  function pruefeDublette() {
+    clearTimeout(dubTimer);
+    dublettenWarnung = null;
+    const h = f.hersteller.trim(), nr = f.katalog_nr.trim();
+    if (!h || !nr) return;
+    dubTimer = setTimeout(async () => {
+      try {
+        const r = await checkDublette(h, nr);
+        if (r.vorhanden > 0) {
+          dublettenWarnung = `Achtung: „${h} ${nr}" hast du bereits ${r.vorhanden}× in der Sammlung.`;
+        }
+      } catch { /* ignore */ }
+    }, 350);
+  }
 
   async function speichern() {
     if (!f.hersteller.trim() || !f.typ.trim()) {
@@ -146,12 +164,15 @@
     <div class="sec">Identität</div>
     <div class="row">
       <label>Hersteller *
-        <input list="hersteller-liste" bind:value={f.hersteller} placeholder="Wiking, Siku, Majorette …" />
+        <input list="hersteller-liste" bind:value={f.hersteller} oninput={pruefeDublette} placeholder="Wiking, Siku, Majorette …" />
       </label>
       <label>Katalog-Nr.
-        <input bind:value={f.katalog_nr} placeholder="z.B. 30/6K. oder 1050" />
+        <input bind:value={f.katalog_nr} oninput={pruefeDublette} placeholder="z.B. 30/6K. oder 1050" />
       </label>
     </div>
+    {#if dublettenWarnung}
+      <div class="dub-warn">⚠ {dublettenWarnung} <span style="color:var(--ink-soft)">— Dublette ist erlaubt, nur zur Info.</span></div>
+    {/if}
     <div class="row">
       <label>Typ / Bezeichnung *
         <input bind:value={f.typ} placeholder="VW Käfer, ovale Heckscheibe" />
@@ -213,6 +234,7 @@
   }
   input:focus, select:focus, textarea:focus { border-color: var(--accent); }
   .err { color: #a35a45; background: #f7ece9; border: 1px solid #e6c8c0; padding: 12px 16px; border-radius: 10px; }
+  .dub-warn { background: #fdf6e3; border: 1px solid #e8d9a0; color: #8a6d1b; padding: 11px 15px; border-radius: 10px; font-size: .9rem; }
   .ebay-box {
     background: var(--bg-card); border: 1px solid var(--line);
     border-radius: var(--radius); padding: 20px 22px; margin-bottom: 30px;
