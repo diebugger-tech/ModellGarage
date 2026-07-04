@@ -1,5 +1,7 @@
 # ModellGarage
 
+🇩🇪 **Deutsch** · [🇬🇧 English](README.en.md)
+
 > **Inventar- & Bewertungs-App für Modellauto-Sammlungen.**
 > Aus einer statischen Sammler-Excel wird eine leichtgewichtige, schöne App —
 > mit Katalog-Abgleich, Konvolut-Handling und optionaler eBay-Anbindung.
@@ -210,6 +212,15 @@ Katalog-Abgleich beim Anlegen (Top-3-Kandidaten), Datenqualitätsfilter
 
 **Offen (Phase 3):** eBay-Import via Browse-API (Developer-Account + OAuth),
 Mehrfach-Erfassung aus einer Konvolut-Beschreibung, pflegbarer Katalog (GK/Rawe).
+
+---
+
+## Mitwirken
+
+Die App ist durchgehend auf Deutsch. Ein **Sprachumschalter (DE/EN) in der App**
+ist bewusst nicht eingebaut (der Nutzerkreis ist deutschsprachig). Wer ihn haben
+möchte, kann gern ein **Issue** öffnen oder einen **Pull Request** beisteuern —
+Vorschläge und Verbesserungen sind willkommen.
 
 ---
 
