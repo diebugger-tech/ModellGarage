@@ -75,9 +75,19 @@ gewichtet** (nicht stumpf Gesamtpreis ÷ Anzahl).
 Zustand (z0/z1/z2) entscheidet der Sammler per Sichtung — die App bietet nur
 ein Dropdown. Optionale Foto-KI (später) schlägt höchstens vor.
 
-### 4. Fotos & eBay (später)
-Fotos lädt der Sammler manuell pro Modell hoch (Upload-Endpoint steht). eBay-
-Import (Foto + Preis, lokal gespeichert) ist Phase 3, optional.
+### 4. eBay-Schnellerfassung (ohne API)
+eBay blockt Server-Fetch (403). Der Sammler kopiert stattdessen **Titel**,
+optional **Preis/Zustand** und optional die **Artikelbeschreibung** aus seinem
+Browser in `/neu` — die App parst den Text lokal (kein Netzwerk) und füllt
+Hersteller, Typ, **Katalog-/Wiking-Nr.**, **Farbe**, Preis, Zustand und Maßstab
+als Vorschlag vor. Nr. und Farbe kommen dabei meist aus der Beschreibung —
+genau die Felder, die im Titel fehlen. Alles bleibt Vorschlag, der Sammler
+bestätigt.
+
+### 5. Fotos & eBay-API (später)
+Fotos lädt der Sammler manuell pro Modell hoch (Upload-Endpoint steht). Ein
+echter eBay-Import via Browse-API (Developer-Account + OAuth) ist Phase 3,
+optional.
 
 ---
 
@@ -148,8 +158,13 @@ einziger Prozess (ein Port, kein separater Node-Server im Betrieb).
 - Podman-Deployment (Multi-Stage-Container) für Windows
 - 4 pytest grün, E2E verifiziert
 
-**Offen (Phase 2+):** Konvolut-UI, Bearbeiten-Formular, Hersteller-Normalisierung,
-Foto-Upload-UI, eBay-Import (Phase 3).
+**Phase 2 erledigt:** Konvolut-UI (Eltern/Kind, gewichteter Preis, Fotos),
+Wunschliste + Dubletten-Warnung, Statistik-Charts, Foto-Galerie mit Lightbox,
+Hersteller-Normalisierung, eBay-Schnellerfassung inkl. Artikelbeschreibung
+(Katalog-Nr. + Farbe).
+
+**Offen (Phase 3):** eBay-Import via Browse-API (Developer-Account + OAuth),
+Mehrfach-Erfassung aus einer Konvolut-Beschreibung.
 
 ---
 

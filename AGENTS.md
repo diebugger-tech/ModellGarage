@@ -127,16 +127,25 @@ direkter Fetch (.de/.com), Reader-Proxy `r.jina.ai` — alle 403.
 
 → **Ein URL-Fetch-Ansatz ist eine Sackgasse. Nicht erneut versuchen.**
 
-**Funktionierender Weg (implementiert):** Der Nutzer kopiert den **Titel (+ optional
-Preis/Zustand)** aus seinem eigenen Browser und fügt ihn in die eBay-Schnell-
-erfassung auf `/neu` ein. `app/services/ebay_parse.py` parst nur Text (kein
-Netzwerk):
+**Funktionierender Weg (implementiert):** Der Nutzer kopiert **Titel**, optional
+**Preis/Zustand** und optional die **Artikelbeschreibung** aus seinem eigenen
+Browser in die eBay-Schnellerfassung auf `/neu`. `app/services/ebay_parse.py`
+parst nur Text (kein Netzwerk):
 - Hersteller-Heuristik gegen bekannte Marken-Liste (Wiking/Siku/Majorette/…)
-- Preis (EUR-Muster), Zustand (Keywords neuwertig→z0, bespielt→z2), Maßstab
+- Preis (EUR-Muster), Zustand (explizites `z0/z1/z2` hat Vorrang, sonst Keywords), Maßstab
 - Typ = Titel minus Hersteller minus Rauschen (OVP/1:87/NEU/…)
-- **Katalog-Nr. NICHT ableitbar** — steht selten im eBay-Titel, bleibt leer
-- Endpoint: `POST /api/ebay/parse-text`. Füllt Formular nur VOR (Vorschlag),
-  Nutzer prüft/korrigiert immer selbst. Nichts wird automatisch gespeichert.
+- **Katalog-/Wiking-Nr. + Farbe aus der Artikelbeschreibung** (2026-07 ergänzt):
+  Verkäufer schreiben die Nr. (`Wiking Nr. 30/6K.`) und Farbe oft in die
+  Beschreibung — genau die Felder, die aus einem Foto nicht ableitbar sind.
+  Nr.-Erkennung: Kontextwort (`Nr.`) → Wiking-Schrägstrich (`30/6K.`) →
+  bloße Nummer nur im Titel (Siku `1050`). Maßstab (`1/87`) und Jahreszahlen
+  werden ausgeschlossen. Ohne Beschreibung bleibt die Nr. wie bisher leer.
+- Endpoint: `POST /api/ebay/parse-text` (`titel`, `extra`, `beschreibung`).
+  Füllt Formular nur VOR (Vorschlag), Nutzer prüft/korrigiert immer selbst —
+  besonders die Katalog-Nr. gegen den Katalog. Nichts wird automatisch gespeichert.
+- **Konvolut-Falle:** Eine Beschreibung listet oft mehrere Modelle mit mehreren
+  Nummern. Das Einzel-Formular übernimmt nur die erste — Mehrfach-Erfassung aus
+  einer Beschreibung wäre ein eigener Konvolut-Modus (noch offen).
 
 Falls später echte eBay-Daten nötig: nur über die **offizielle eBay-API mit
 Developer-Account + OAuth** (Browse API = aktive Angebote). Kein HTML-Scraping.
@@ -310,3 +319,11 @@ Erledigt (Phase 1b — CRUD + Upload-UI):
 - ✅ Bearbeiten + Löschen auf der Detailseite (PATCH/DELETE)
 - Manuell angelegte Modelle nutzen dieselben Tabellen/Felder wie importierte —
   kein Bruch zwischen Excel-Daten und Handeingabe
+
+Erledigt (Phase 2 — Konvolut, Wunschliste, eBay-Beschreibung):
+- ✅ Konvolut-Handling (Eltern/Kind, gewichteter Einzelpreis, Gesamtfoto-Upload,
+  direktes Kind-Anlegen), Wunschliste + Dubletten-Warnung, Statistik-Charts,
+  Foto-Galerie mit Lightbox, gehärtete Uploads
+- ✅ Hersteller-Normalisierung (Matchbox-Serien wie Superfast/Lesney → `serie`)
+- ✅ eBay-Schnellerfassung liest jetzt auch die **Artikelbeschreibung**
+  (Katalog-/Wiking-Nr. + Farbe) — `tests/test_ebay_parse.py` deckt das ab

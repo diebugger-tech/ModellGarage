@@ -12,6 +12,7 @@
   // eBay-Schnellerfassung
   let ebayTitel = $state('');
   let ebayExtra = $state('');
+  let ebayBeschreibung = $state('');
   let ebayLaeuft = $state(false);
   let ebayHinweis = $state(null);
   let ebayInfo = $state(false);
@@ -30,15 +31,20 @@
     if (!ebayTitel.trim()) return;
     ebayLaeuft = true; ebayHinweis = null;
     try {
-      const v = await ebayParseText(ebayTitel, ebayExtra);
+      const v = await ebayParseText(ebayTitel, ebayExtra, ebayBeschreibung);
       if (v.hersteller) f.hersteller = v.hersteller;
       if (v.typ) f.typ = v.typ;
+      if (v.katalog_nr) f.katalog_nr = v.katalog_nr;
+      if (v.farbe) f.farbe = v.farbe;
       if (v.bezahlt != null) f.bezahlt = v.bezahlt;
       if (v.zustand) f.zustand = v.zustand;
       if (v.bemerkung) f.bemerkung = v.bemerkung;
+      if (v.katalog_nr) pruefeDublette();
       ebayHinweis = 'Übernommen — bitte prüfen und ggf. korrigieren. '
         + (v.hersteller ? '' : 'Hersteller nicht erkannt. ')
-        + 'Katalog-Nr. steht selten im eBay-Titel.';
+        + (v.katalog_nr
+            ? 'Katalog-Nr. „' + v.katalog_nr + '" aus der Beschreibung übernommen — bitte gegen den Katalog prüfen.'
+            : 'Katalog-Nr. nicht gefunden — Artikelbeschreibung mit einfügen hilft.');
     } catch (e) {
       ebayHinweis = '⚠ ' + e.message;
     } finally {
@@ -122,10 +128,12 @@
           <li>eBay-Angebot im Browser öffnen.</li>
           <li>Den <b>Titel</b> markieren und kopieren (Strg+C), oben einfügen.</li>
           <li>Optional: Preis & Zustand (z.B. „EUR 39,00 gebraucht") ins zweite Feld.</li>
-          <li>„Werte übernehmen" klickt die Felder <b>Hersteller, Typ, Preis,
-              Zustand, Maßstab</b> automatisch voll.</li>
+          <li>Optional: die <b>Artikelbeschreibung</b> ins dritte Feld — daraus
+              werden <b>Katalog-Nr.</b> und <b>Farbe</b> gezogen (stehen selten im Titel).</li>
+          <li>„Werte übernehmen" klickt die Felder <b>Hersteller, Typ, Katalog-Nr.,
+              Farbe, Preis, Zustand, Maßstab</b> automatisch voll.</li>
           <li>Prüfen, ggf. korrigieren — vor allem die <b>Katalog-Nr.</b>
-              (steht selten im eBay-Titel).</li>
+              gegen den Katalog abgleichen.</li>
         </ol>
         <div class="info-warn">
           Warum kein Link? eBay blockt automatisches Laden von Angebots-Links
@@ -143,6 +151,12 @@
       placeholder="optional: Preis / Zustand mitkopieren, z.B. EUR 39,00 gebraucht"
       style="margin-top:8px"
     />
+    <textarea
+      bind:value={ebayBeschreibung}
+      rows="6"
+      placeholder="optional: Artikelbeschreibung einfügen — hier stehen oft Katalog-Nr. (z.B. Wiking Nr. 30/6K.) und Farbe"
+      style="margin-top:8px; resize:vertical; min-height:120px"
+    ></textarea>
     <div style="display:flex; gap:10px; align-items:center; margin-top:10px">
       <button class="btn" onclick={ebayUebernehmen} disabled={ebayLaeuft || !ebayTitel.trim()}>
         {ebayLaeuft ? 'Werte aus …' : 'Werte übernehmen ↓'}

@@ -92,11 +92,11 @@ export async function loescheModell(id) {
   return r.ok;
 }
 
-export async function ebayParseText(titel, extra = '') {
+export async function ebayParseText(titel, extra = '', beschreibung = '') {
   const r = await fetch('/api/ebay/parse-text', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ titel, extra })
+    body: JSON.stringify({ titel, extra, beschreibung })
   });
   const data = await r.json();
   if (!r.ok) throw new Error(data.detail || 'Konnte Text nicht auswerten');

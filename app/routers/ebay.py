@@ -15,13 +15,14 @@ router = APIRouter(prefix="/api/ebay", tags=["ebay"])
 
 class EbayTextIn(BaseModel):
     titel: str
-    extra: str = ""  # optional: Beschreibung/Preiszeile mitkopiert
+    extra: str = ""          # optional: Preis-/Zustandszeile mitkopiert
+    beschreibung: str = ""   # optional: eBay-Artikelbeschreibung (Nr., Farbe …)
 
 
 @router.post("/parse-text")
 async def ebay_parse_text(data: EbayTextIn) -> dict:
-    """Eingefügten eBay-Titel (+ optional Text) → vorausgefüllte Feld-Vorschläge."""
+    """Eingefügten eBay-Titel (+ optional Preis + Beschreibung) → Feld-Vorschläge."""
     try:
-        return parse_text(data.titel, data.extra)
+        return parse_text(data.titel, data.extra, data.beschreibung)
     except ValueError as e:
         raise HTTPException(400, str(e)) from e
