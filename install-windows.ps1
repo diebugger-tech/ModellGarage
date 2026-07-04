@@ -24,10 +24,11 @@ if (-not $isAdmin) {
   return
 }
 
-# 1. Podman Desktop installieren (falls noch nicht vorhanden)
+# 1. Podman-CLI installieren (RedHat.Podman = die Kommandozeile 'podman'.
+#    ACHTUNG: RedHat.Podman-Desktop ist nur die GUI und liefert KEIN 'podman'.)
 if (-not (Get-Command podman -ErrorAction SilentlyContinue)) {
-  Info "Installiere Podman Desktop (winget) ..."
-  winget install -e --id RedHat.Podman-Desktop --silent `
+  Info "Installiere Podman (winget) ..."
+  winget install -e --id RedHat.Podman --silent `
     --accept-package-agreements --accept-source-agreements
 }
 
@@ -41,12 +42,21 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
 # PATH dieser Sitzung auffrischen, damit 'podman' und 'git' sofort gefunden werden
 $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
             [Environment]::GetEnvironmentVariable("Path", "User")
-foreach ($d in @("C:\Program Files\RedHat\Podman", "C:\Program Files\Git\cmd")) {
+foreach ($d in @(
+    "C:\Program Files\RedHat\Podman\usr\bin",
+    "C:\Program Files\RedHat\Podman",
+    "C:\Program Files\Git\cmd")) {
   if (Test-Path $d) { $env:Path += ";$d" }
+}
+# Falls immer noch nicht da: podman.exe unter Program Files gezielt suchen
+if (-not (Get-Command podman -ErrorAction SilentlyContinue)) {
+  $exe = Get-ChildItem "C:\Program Files\RedHat" -Recurse -Filter podman.exe `
+    -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ($exe) { $env:Path += ";" + $exe.DirectoryName }
 }
 
 if (-not (Get-Command podman -ErrorAction SilentlyContinue)) {
-  Warn "Podman ist installiert, aber in dieser Sitzung noch nicht verfuegbar."
+  Warn "Podman-CLI konnte nicht gefunden werden."
   Warn "Bitte den Rechner EINMAL NEU STARTEN und diesen Befehl erneut einfuegen."
   return
 }
