@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# ModellGarage
-=======
 # ModellGarage
 
 > **Inventar- & Bewertungs-App für Modellauto-Sammlungen.**
@@ -166,12 +163,16 @@ Wunschliste + Dubletten-Warnung, Statistik-Charts, Foto-Galerie mit Lightbox,
 Hersteller-Normalisierung, eBay-Schnellerfassung inkl. Artikelbeschreibung
 (Katalog-Nr. + Farbe).
 
+**Phase 2b erledigt:** manuelle Wunschliste (Nummern merken, „gekauft"-Toggle,
+aus Lücken übernehmen), Kaufjahr-Filter/-Suche/-Anzeige in der Galerie,
+Katalog-Abgleich beim Anlegen (Top-3-Kandidaten), Datenqualitätsfilter
+(ohne Foto/Zustand/Kaufdatum), rotierendes Auto-Backup, Import-Regressionstest.
+
 **Offen (Phase 3):** eBay-Import via Browse-API (Developer-Account + OAuth),
-Mehrfach-Erfassung aus einer Konvolut-Beschreibung.
+Mehrfach-Erfassung aus einer Konvolut-Beschreibung, pflegbarer Katalog (GK/Rawe).
 
 ---
 
 ## Lizenz
 
-Privates Hobbyprojekt.
->>>>>>> develop
+Apache-2.0 (siehe `LICENSE`).

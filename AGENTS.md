@@ -306,10 +306,10 @@ Regeln:
 
 **Start:** `make install && make import && make build && make dev` → http://127.0.0.1:8137
 
-Offene TODOs (Phase 2+):
-- Konvolut-Handling (Eltern/Kind, gewichteter Einzelpreis) — Tabelle steht, UI/Logik fehlt
-- Hersteller-Normalisierung (Matchbox-Serien wie "Superfast"/"Lesney" als Serie statt Hersteller)
-- eBay-Import (Phase 3, braucht Developer-Keys)
+Offene TODOs (Phase 3):
+- eBay-Import via Browse-API (Developer-Account + OAuth) — nur echte API, kein Scraping
+- Mehrfach-Erfassung aus einer Konvolut-Beschreibung (mehrere Nr./Farbe → Liste)
+- Katalog als pflegbare Ebene (GK/Rawe importierbar) für echten Wertabgleich
 
 Erledigt (Phase 1b — CRUD + Upload-UI):
 - ✅ Excel-Import-UI (`/import`, Drag&Drop-Upload → `POST /api/import/excel`)
@@ -327,3 +327,20 @@ Erledigt (Phase 2 — Konvolut, Wunschliste, eBay-Beschreibung):
 - ✅ Hersteller-Normalisierung (Matchbox-Serien wie Superfast/Lesney → `serie`)
 - ✅ eBay-Schnellerfassung liest jetzt auch die **Artikelbeschreibung**
   (Katalog-/Wiking-Nr. + Farbe) — `tests/test_ebay_parse.py` deckt das ab
+
+Erledigt (Phase 2b — Wunschliste, Kaufjahr, Katalog-Abgleich, Backup):
+- ✅ **Manuelle Wunschliste** (`wunsch`-Tabelle, `/api/wunsch` CRUD): Nummern
+  merken, „gekauft"-Toggle, löschen; Lücken-Nummern per Klick übernehmen
+- ✅ **Kaufjahr** in der Galerie: eigenes Filter-Dropdown (`/api/statistik/jahre`
+  + `jahr`-Param), Freitextsuche trifft das Jahr, Jahr steht auf der Karte
+- ✅ **Katalog-Abgleich beim Anlegen** (`/api/katalog/kandidaten`, read-only):
+  erkannte Nr./Typ → Top-3-Kandidaten mit Typ/Serie/Min-Max, Klick füllt aus
+- ✅ **Datenqualitätsfilter** (`qualitaet`-Param): ohne Foto / Zustand / Kaufdatum
+- ✅ **Auto-Backup**: rotierendes Tages-Backup der DB beim App-Start (`data/backups/`,
+  letzte 7), `backups/` gitignored
+- ✅ **Import-Regressionstest** (`tests/test_excel_import.py`, `skipif`): sichert,
+  dass die private Sammler-Excel immer importierbar bleibt (bleibt aus GitHub raus)
+
+**Excel-Invariante:** Die Original-Sammler-Excel (`*.xlsx`, gitignored, nie auf
+GitHub) muss mit jedem Feature unverändert importierbar bleiben — bei Schema-
+Änderungen den Regressionstest / `make import` gegen die echte Datei prüfen.
