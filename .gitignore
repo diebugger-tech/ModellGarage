@@ -89,9 +89,9 @@ uploaded_media_*
 *.xls
 *.ods
 *.csv
-# Ausnahme: NUR die öffentliche Beispiel-Sammlung zum Ausprobieren (fake Daten).
-# Die private Sammler-Excel im Projekt-Root bleibt durch *.xlsx weiter ignoriert.
-!examples/beispiel-sammlung.xlsx
+# Ausnahme: die öffentlichen Test-/Beispiel-Excels in examples/ (nur fake Daten).
+# Die private Sammler-Excel im Projekt-Root/data/ bleibt durch *.xlsx weiter ignoriert.
+!examples/*.xlsx
 .~lock.*#
 
 # === LOGS / TEMP =============================================================
