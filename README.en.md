@@ -123,6 +123,30 @@ make help       # all targets
 
 ---
 
+## Volumes & data safety
+
+The app runs as a **single Podman container**, but your data deliberately lives **outside** it in two named volumes. They survive every restart and rebuild — the start scripts rebuild the container each time (`podman rm -f` / `compose up --build`), while the volumes stay in place:
+
+| Volume | Contents | Path in container |
+|--------|----------|-------------------|
+| `modellgarage-media` | uploaded **photos** | `/app/media` |
+| `modellgarage-data`  | the **database** | `/app/data/modellgarage.db` |
+
+> ⚠️ **Never delete these volumes — otherwise all photos and the entire collection are lost for good.**
+
+Dangerous commands that destroy the data:
+
+```bash
+podman volume rm modellgarage-media   # deletes all photos
+podman volume rm modellgarage-data    # deletes the database
+podman machine reset                  # deletes ALL volumes on the machine
+podman system prune --volumes         # deletes unused volumes
+```
+
+By contrast, `stop-podman.*` and `podman compose down` (without `-v`) are **safe** — they only stop the container and keep the volumes.
+
+**Backup** goes through the **in-app export** (Excel), *not* through Git: the volumes (`media/`, `data/`) are intentionally excluded from the repo via `.gitignore`. Export regularly and keep the file outside the container.
+
 ## What makes the app special
 
 1. **Catalog-based identity.** Every model has a manufacturer catalog number

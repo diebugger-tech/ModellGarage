@@ -142,6 +142,30 @@ make test        # pytest
 
 ---
 
+## Volumes & Datensicherheit
+
+Die App läuft als **einzelner Podman-Container**, aber deine Daten liegen bewusst **außerhalb** davon in zwei benannten Volumes. Sie überleben jeden Neustart und Rebuild — die Start-Skripte bauen den Container jedes Mal neu (`podman rm -f` / `compose up --build`), die Volumes bleiben dabei bestehen:
+
+| Volume | Inhalt | Pfad im Container |
+|--------|--------|-------------------|
+| `modellgarage-media` | hochgeladene **Fotos** | `/app/media` |
+| `modellgarage-data`  | die **Datenbank** | `/app/data/modellgarage.db` |
+
+> ⚠️ **Diese Volumes niemals löschen — sonst sind alle Fotos und die komplette Sammlung unwiderruflich weg.**
+
+Gefährliche Befehle, die die Daten vernichten:
+
+```bash
+podman volume rm modellgarage-media   # löscht alle Fotos
+podman volume rm modellgarage-data    # löscht die Datenbank
+podman machine reset                  # löscht ALLE Volumes der Maschine
+podman system prune --volumes         # löscht ungenutzte Volumes
+```
+
+`stop-podman.*` und `podman compose down` (ohne `-v`) sind dagegen **sicher** — sie stoppen nur den Container und lassen die Volumes stehen.
+
+**Backup** läuft über den **Export in der App** (Excel), *nicht* über Git: die Volumes (`media/`, `data/`) sind absichtlich per `.gitignore` aus dem Repo ausgeschlossen. Exportiere regelmäßig und bewahre die Datei außerhalb des Containers auf.
+
 ## Was die App besonders macht
 
 ### 1. Katalog-basierte Identität
