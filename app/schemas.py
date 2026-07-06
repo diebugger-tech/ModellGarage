@@ -57,6 +57,7 @@ class ModellOut(BaseModel):
     anzahl: int
     konvolut_id: int | None = None
     katalog: KatalogOut | None = None
+    foto_url: str | None = None  # erstes Foto (Galerie-Thumbnail), z.B. "/media/modell_1_ab12cd34.jpg"
 
 
 class ModellCreate(BaseModel):

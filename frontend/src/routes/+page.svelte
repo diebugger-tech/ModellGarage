@@ -117,7 +117,11 @@
         <div class="card" onclick={() => goto('/modell/' + m.id)} role="button" tabindex="0"
              onkeydown={(e) => e.key === 'Enter' && goto('/modell/' + m.id)}>
           <div class="thumb">
-            <span class="placeholder">{initial(m.katalog?.typ)}</span>
+            {#if m.foto_url}
+              <img src={m.foto_url} alt={m.katalog?.typ || 'Foto'} loading="lazy" />
+            {:else}
+              <span class="placeholder">{initial(m.katalog?.typ)}</span>
+            {/if}
             {#if m.katalog?.katalog_nr}<span class="badge">{m.katalog.katalog_nr}</span>{/if}
           </div>
           <div class="body">

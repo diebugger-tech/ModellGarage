@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.database import get_session
-from app.models import Foto, Katalog, Modell
+from app.models import Foto, Katalog, Konvolut, Modell
 from app.schemas import (
     ModellCreate,
     ModellCreateVoll,
@@ -36,7 +36,16 @@ async def liste_modelle(
     sort: str = Query("id", pattern="^(id|bezahlt|schaetzwert|kaufdatum)$"),
     order: str = Query("asc", pattern="^(asc|desc)$"),
 ) -> ModellListe:
-    stmt = select(Modell).join(Katalog).options(selectinload(Modell.katalog))
+    stmt = (
+        select(Modell)
+        .join(Katalog)
+        .options(
+            selectinload(Modell.katalog),
+            selectinload(Modell.fotos),
+            # Fallback-Thumbnail: Foto des Konvoluts, falls das Modell selbst keins hat
+            selectinload(Modell.konvolut).selectinload(Konvolut.fotos),
+        )
+    )
     count_stmt = select(func.count(Modell.id)).join(Katalog)
 
     filters = []
@@ -81,7 +90,30 @@ async def liste_modelle(
 
     total = (await session.execute(count_stmt)).scalar_one()
     items = (await session.execute(stmt)).scalars().all()
-    return ModellListe(total=total, items=[ModellOut.model_validate(m) for m in items])
+    return ModellListe(total=total, items=[_zu_ausgabe(m) for m in items])
+
+
+def _zu_ausgabe(modell: Modell) -> ModellOut:
+    """ModellOut inkl. Galerie-Thumbnail.
+
+    Vorrang hat das eigene Modell-Foto (wie auf der Detailseite). Fehlt eins,
+    aber das Modell gehört zu einem Konvolut mit Gesamtfoto, wird dieses als
+    Fallback gezeigt — sonst bliebe ein Konvolut-Kind ohne Einzelfoto leer.
+    """
+    out = ModellOut.model_validate(modell)
+    foto = _erstes_foto(modell)
+    if foto is not None:
+        out.foto_url = f"/{foto.pfad}"
+    return out
+
+
+def _erstes_foto(modell: Modell) -> Foto | None:
+    """Erstes Modell-Foto; ersatzweise erstes Konvolut-Foto (nach id stabil)."""
+    if modell.fotos:
+        return min(modell.fotos, key=lambda f: f.id)
+    if modell.konvolut and modell.konvolut.fotos:
+        return min(modell.konvolut.fotos, key=lambda f: f.id)
+    return None
 
 
 @router.get("/{modell_id}", response_model=ModellOut)
