@@ -6,6 +6,13 @@
 > Aus einer statischen Sammler-Excel wird eine leichtgewichtige, schöne App —
 > mit Katalog-Abgleich, Konvolut-Handling und optionaler eBay-Anbindung.
 
+## Screenshots
+
+| Galerie | Statistik |
+|:---:|:---:|
+| [![Galerie – die Sammlung im Überblick](docs/screenshots/landingpage.png)](docs/screenshots/landingpage.png) | [![Statistik – Sammlung in Zahlen](docs/screenshots/statistik.png)](docs/screenshots/statistik.png) |
+| Sammlung durchsuchen, filtern und sortieren | Wertentwicklung, Zukäufe pro Jahr und Zustandsverteilung |
+
 ---
 
 ## Idee
@@ -76,6 +83,11 @@ Der Installer sagt das an — nach dem Neustart einfach **denselben Befehl noch
 einmal** in der Administrator-PowerShell einfügen, dann läuft er komplett durch.
 Am Ende öffnet sich der Browser auf http://localhost:8003.
 
+So sieht es aus, wenn alles läuft — der Container `modellgarage` steht in Podman
+Desktop auf **RUNNING**, Port **8003**:
+
+[![Podman Desktop – Container modellgarage läuft auf Port 8003](docs/screenshots/podman.png)](docs/screenshots/podman.png)
+
 ### Windows — manuell (falls du den Installer nicht nutzt)
 
 Wenn du das Projekt als **ZIP** heruntergeladen und entpackt hast:
@@ -115,18 +127,56 @@ Wenn du das Projekt als **ZIP** heruntergeladen und entpackt hast:
    ```
    Alternativ mit `make`: `make podman-up` / `make podman-down` / `make podman-logs`.
 
-### Danach (alle Systeme)
+### Danach (alle Systeme): Daten einspielen
 
-5. **Eigene Excel importieren:** in der App oben auf **„Import"** klicken und die
-   `.xlsx`-Sammlungsdatei hochladen. Die Sammlung erscheint dann in der Galerie.
-   DB und Fotos bleiben in den Podman-Volumes erhalten — beim nächsten Start
-   wieder da.
+Die App läuft — jetzt kommen Daten hinein. Es gibt drei Wege:
 
-> **Erst mal ausprobieren?** Ohne eigene Daten kannst du die mitgelieferte
-> Beispiel-Sammlung **`examples/beispiel-sammlung.xlsx`** importieren (18 fiktive
-> Modelle von Wiking, Siku, Majorette u. a.) — so siehst du sofort, wie die App
-> mit Galerie, Statistik, Lücken und Wunschliste funktioniert. Die Datei enthält
-> nur erfundene Beispieldaten.
+#### 1. Zuerst ausprobieren (empfohlen)
+
+Ohne eigene Daten die mitgelieferten Testdaten importieren: in der App oben auf
+**„Import"** klicken und **`examples/testdaten.xlsx`** hochladen (14 fiktive
+Modelle über Wiking, Siku, Majorette, Playmobil — inklusive Dubletten und
+Lücken). So siehst du sofort Galerie, Statistik, Lücken und Wunschliste in
+Aktion. (Alternativ die kleinere `examples/beispiel-sammlung.xlsx`.) Alle Werte
+sind erfunden.
+
+**Konvolute und die Wunschliste** entstehen **nicht** beim Excel-Import. Um auch
+die zu testen, nach dem Import einmalig das Seed-Skript laufen lassen (legt zwei
+Beispiel-Konvolute mit gewichteter Preisverteilung und Wunschlisten-Einträge an):
+
+```bash
+python scripts/seed_testdaten.py        # App muss laufen (http://localhost:8003)
+```
+
+#### 2. Eigene Sammlung importieren
+
+Der Import erwartet ein **bestimmtes Spaltenschema** (deutsche Überschriften).
+Eine beliebige Tabelle mit anderen Spalten importiert **nicht** sinnvoll — die
+erwarteten Spalten sind:
+
+| Hersteller | Nr. | Min. | Max. | Typ | Farbe | Zustand | Bemerkung | bezahlt | Schätzwert | Anzahl | Kaufdatum |
+
+Der einfachste Weg zur passenden Vorlage ist der **Export**:
+
+1. In der App auf **„Export"** klicken → du erhältst eine `.xlsx` mit exakt den
+   richtigen Spalten (leer, falls noch keine Daten drin sind).
+2. Deine Sammlung dort eintragen — eine Zeile pro Modell. `Zustand` ist
+   `z0`/`z1`/`z2`, `Kaufdatum` z. B. `15.11.2020` oder `2020-11-15`.
+3. Die Datei über **„Import"** wieder hochladen.
+
+Export und Import passen zusammen: Ein exportiertes Excel lässt sich unverändert
+wieder importieren, ohne dass Werte oder Hersteller verloren gehen. Alternativ
+`examples/testdaten.xlsx` als Vorlage nehmen und die Zeilen ersetzen.
+
+#### 3. Ohne Excel — direkt in der App erfassen
+
+Du brauchst keine Excel: Oben auf **„+ Anlegen"** trägst du Modelle einzeln ein
+(mit Katalog-Abgleich und Zustands-Dropdown). Für eBay-Käufe gibt es unter `/neu`
+die Schnellerfassung — Titel/Beschreibung einfügen, die App schlägt Hersteller,
+Nr., Farbe, Preis und Zustand vor.
+
+> Deine Daten (Datenbank + Fotos) liegen in den Podman-Volumes und sind beim
+> nächsten Start automatisch wieder da.
 
 > Hinweis: Falls `podman compose` meldet, dass „compose" fehlt, in Podman Desktop
 > unter *Settings → Extensions* „Compose" aktivieren (oder `podman-compose`

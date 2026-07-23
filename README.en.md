@@ -6,6 +6,13 @@
 > Turns a static collector's Excel sheet into a lightweight, polished app —
 > with catalog matching, "lot" handling and optional eBay capture.
 
+## Screenshots
+
+| Gallery | Statistics |
+|:---:|:---:|
+| [![Gallery – the collection at a glance](docs/screenshots/landingpage.png)](docs/screenshots/landingpage.png) | [![Statistics – the collection in numbers](docs/screenshots/statistik.png)](docs/screenshots/statistik.png) |
+| Search, filter and sort the collection | Value over time, purchases per year, condition split |
+
 ---
 
 ## Idea
@@ -57,6 +64,11 @@ The installer says so — after rebooting, just paste **the same command again**
 the Administrator PowerShell and it runs all the way through. At the end the
 browser opens at http://localhost:8003.
 
+This is what it looks like when everything is up — the `modellgarage` container
+shows **RUNNING** on port **8003** in Podman Desktop:
+
+[![Podman Desktop – modellgarage container running on port 8003](docs/screenshots/podman.png)](docs/screenshots/podman.png)
+
 ### Windows — manual (if you don't use the installer)
 
 If you downloaded and unzipped the project as a **ZIP**:
@@ -95,16 +107,55 @@ If you downloaded and unzipped the project as a **ZIP**:
    ```
    Or via `make`: `make podman-up` / `make podman-down` / `make podman-logs`.
 
-### Then (all systems)
+### Then (all systems): load data
 
-5. **Import your Excel:** in the app, click **"Import"** at the top and upload
-   your `.xlsx` collection file. The collection then appears in the gallery.
-   Database and photos persist in the Podman volumes — they're back on next start.
+The app is running — now bring data in. There are three ways:
 
-> **Just want to try it?** Without your own data you can import the bundled sample
-> collection **`examples/beispiel-sammlung.xlsx`** (18 fictional models from
-> Wiking, Siku, Majorette and others) — an instant look at the gallery,
-> statistics, gaps and wishlist. The file contains made-up demo data only.
+#### 1. Try it first (recommended)
+
+Without your own data, import the bundled test data: click **"Import"** at the
+top and upload **`examples/testdaten.xlsx`** (14 fictional models across Wiking,
+Siku, Majorette, Playmobil — including duplicates and gaps). You instantly see
+the gallery, statistics, gaps and wishlist in action. (Alternatively the smaller
+`examples/beispiel-sammlung.xlsx`.) All values are made up.
+
+**Lots (Konvolute) and the wishlist** are **not** created by the Excel import. To
+test those too, run the seed script once after importing (creates two example
+lots with weighted price distribution plus wishlist entries):
+
+```bash
+python scripts/seed_testdaten.py        # app must be running (http://localhost:8003)
+```
+
+#### 2. Import your own collection
+
+The import expects a **specific column schema** (German headers). An arbitrary
+spreadsheet with different columns will **not** import meaningfully — the expected
+columns are:
+
+| Hersteller | Nr. | Min. | Max. | Typ | Farbe | Zustand | Bemerkung | bezahlt | Schätzwert | Anzahl | Kaufdatum |
+
+The easiest way to get a matching template is **Export**:
+
+1. Click **"Export"** in the app → you get an `.xlsx` with exactly the right
+   columns (empty if there's no data yet).
+2. Fill in your collection — one row per model. `Zustand` is `z0`/`z1`/`z2`,
+   `Kaufdatum` e.g. `15.11.2020` or `2020-11-15`.
+3. Upload the file again via **"Import"**.
+
+Export and import match: an exported spreadsheet re-imports unchanged, without
+losing values or manufacturer. Alternatively use `examples/testdaten.xlsx` as a
+template and replace the rows.
+
+#### 3. No Excel — capture directly in the app
+
+You don't need a spreadsheet: click **"+ Anlegen"** to add models one by one
+(with catalog matching and a condition dropdown). For eBay purchases there's the
+quick-capture at `/neu` — paste title/description and the app suggests
+manufacturer, number, color, price and condition.
+
+> Your data (database + photos) lives in the Podman volumes and is automatically
+> back on the next start.
 
 > Note: if `podman compose` reports that "compose" is missing, enable "Compose"
 > in Podman Desktop under *Settings → Extensions* (or install `podman-compose`).
