@@ -36,70 +36,60 @@ window, one port (`http://localhost:8003`). No Python/Node install required.
 
 **First, on every system:**
 
-1. **Install Podman Desktop:** https://podman.io/getting-started/installation
-   (on first launch, confirm "Initialize / Start" for the Podman machine once).
+1. **Install Podman** — via the **official, signed** installer:
+   - **Windows:** Podman Desktop via winget in an **Administrator PowerShell**:
+     ```powershell
+     winget install -e --id RedHat.Podman-Desktop
+     ```
+     …or download the signed `.exe` from https://podman-desktop.io/ and run it.
+     Podman Desktop also sets up **WSL2** (the Linux subsystem Podman needs) —
+     this needs **admin rights once**, and Windows usually requires **a reboot**
+     for the first WSL2 setup.
+   - **macOS/Linux:** Podman or Podman Desktop from https://podman.io/ (or your
+     package manager).
+
+   On first launch of Podman Desktop, confirm "Initialize / Start" for the Podman
+   machine once.
 2. **Get the project:** on GitHub click the green **"Code"** button → **"Download
    ZIP"**, then unzip — or `git clone`.
 
-> **A note on admin rights:** the **Administrator PowerShell is only needed once,
-> for the initial setup** — Windows installs WSL2, Podman Desktop and Git during
-> that step (WSL2 requires admin and usually a reboot). **Running** ModellGarage
-> afterwards needs **no admin and no terminal**: just double-click
-> `start-podman.bat` to start and `stop-podman.bat` to stop — or do everything
-> from the Podman Desktop UI.
+> **A note on admin rights:** admin is only needed **once**, to install Podman
+> Desktop / WSL2 (official, signed installer). **Running** ModellGarage afterwards
+> needs **no admin and no terminal**: just double-click `start-podman.bat` to start
+> and `stop-podman.bat` to stop — or do everything from the Podman Desktop UI.
 
-### Windows — fastest (one command)
+### Windows — start the app
 
-Easiest path: **one** command sets everything up. Open **PowerShell as
-Administrator** (Start → type "PowerShell" → right-click → *Run as administrator*)
-and paste:
+Podman Desktop installed and running (see "First, on every system" above)? Then
+you need **no admin and no terminal** anymore:
 
-```powershell
-irm https://raw.githubusercontent.com/diebugger-tech/ModellGarage/main/install-windows.ps1 | iex
-```
-
-This single command automatically installs everything needed:
-
-- **Podman Desktop** (the container runtime)
-- **WSL2** (the Linux subsystem Podman needs on Windows) — usually not present
-  yet, so it's set up here
-- **Git** (to fetch and later update the project)
-- downloads **ModellGarage** and **starts** the app
-
-Important: if WSL2 is installed for the first time, Windows requires **a reboot**.
-The installer says so — after rebooting, just paste **the same command again** in
-the Administrator PowerShell and it runs all the way through. At the end the
-browser opens at http://localhost:8003.
+1. Go into the unzipped project folder — the one that contains `start-podman.bat`
+   (usually called `ModellGarage-main`, possibly nested twice).
+2. **Double-click `start-podman.bat`.** The first run builds the container (a few
+   minutes), then the browser opens at http://localhost:8003.
+3. **Stop:** double-click **`stop-podman.bat`**.
 
 This is what it looks like when everything is up — the `modellgarage` container
 shows **RUNNING** on port **8003** in Podman Desktop:
 
 [![Podman Desktop – modellgarage container running on port 8003](docs/screenshots/podman.png)](docs/screenshots/podman.png)
 
-### Windows — manual (if you don't use the installer)
+> **Why the container route?** ModellGarage runs **isolated** in a Podman
+> container (rootless, inside a WSL2 VM), separated from your Windows system. Your
+> collection data stays local, and you install Podman Desktop via the **official,
+> signed** installer — no self-made remote script.
 
-If you downloaded and unzipped the project as a **ZIP**:
-
-3. **Install the Podman CLI** (once, in an Administrator PowerShell) — there is
-   **no `make`** on Windows, hence the container route:
-   ```powershell
-   winget install -e --id RedHat.Podman
-   ```
-   Then **close and reopen** PowerShell (so `podman` is found).
-4. **Go into the project folder.** The ZIP folder is usually called
-   `ModellGarage-main` (possibly nested twice). Easiest: open the folder that
-   contains `start-podman.bat` in Explorer and **double-click `start-podman.bat`**.
-   Or in PowerShell, e.g.:
-   ```powershell
-   cd "$env:USERPROFILE\Downloads\ModellGarage-main\ModellGarage-main"
-   .\start-podman.bat
-   ```
-   The first run sets up the Podman machine, builds the container (a few minutes)
-   and opens the browser at http://localhost:8003.
-5. **Stop:** double-click **`stop-podman.bat`** (or `.\stop-podman.bat`).
+> **What does `start-podman.bat` do?** The batch file only launches the
+> **bundled, readable** `start-podman.ps1` from the same folder — it fetches
+> **nothing from the internet** and needs **no admin**. The `-ExecutionPolicy
+> Bypass` in it applies only to that single call of the local script (needed
+> because Windows otherwise blocks files from a downloaded ZIP) — your machine's
+> execution policy stays unchanged. You can open `start-podman.ps1` and check it
+> first: it just builds the image from the local `Containerfile`, creates the
+> volumes and starts the container on port 8003.
 
 > Note: the `make …` commands below are for development on **Linux/macOS** only.
-> On Windows always use the `*-podman.bat` scripts or the one-command installer.
+> On Windows always use the `*-podman.bat` scripts.
 
 ### macOS / Linux
 

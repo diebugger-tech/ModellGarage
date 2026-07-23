@@ -55,71 +55,62 @@ Fenster, ein Port (`http://localhost:8003`). Keine Python-/Node-Installation nö
 
 **Für alle Systeme zuerst:**
 
-1. **Podman Desktop installieren:** https://podman.io/getting-started/installation
-   (beim ersten Start einmal die Podman-Maschine „Initialize / Start" bestätigen).
+1. **Podman installieren** — über den **offiziellen, signierten** Installer:
+   - **Windows:** Podman Desktop per winget in einer **Administrator-PowerShell**:
+     ```powershell
+     winget install -e --id RedHat.Podman-Desktop
+     ```
+     …oder die signierte `.exe` von https://podman-desktop.io/ herunterladen und
+     starten. Podman Desktop richtet dabei **WSL2** (das Linux-Subsystem, das
+     Podman braucht) mit ein — dafür sind **einmalig Admin-Rechte** nötig, und
+     Windows verlangt beim ersten WSL2-Setup meist **einen Neustart**.
+   - **macOS/Linux:** Podman bzw. Podman Desktop von https://podman.io/ (oder über
+     den Paketmanager).
+
+   Beim ersten Start von Podman Desktop einmal die Podman-Maschine
+   „Initialize / Start" bestätigen.
 2. **Projekt holen:** auf GitHub den grünen **„Code"**-Button → **„Download ZIP"**,
    dann entpacken — oder `git clone`.
 
-> **Kurz zu den Admin-Rechten:** Die **Administrator-PowerShell wird nur einmalig
-> für die Einrichtung** gebraucht — Windows installiert dabei WSL2, Podman Desktop
-> und Git (WSL2 verlangt Admin und meist einen Neustart). Der **spätere Betrieb**
-> der ModellGarage braucht **kein Admin und kein Terminal**: einfach
-> `start-podman.bat` per Doppelklick starten und `stop-podman.bat` zum Stoppen —
-> oder alles bequem über die Podman-Desktop-Oberfläche.
+> **Kurz zu den Admin-Rechten:** Admin wird **nur einmalig** für die Installation
+> von Podman Desktop / WSL2 gebraucht (offizieller, signierter Installer). Der
+> **spätere Betrieb** der ModellGarage braucht **kein Admin und kein Terminal**:
+> `start-podman.bat` per Doppelklick starten, `stop-podman.bat` zum Stoppen — oder
+> alles bequem über die Podman-Desktop-Oberfläche.
 
-### Windows — schnellste Variante (ein Befehl)
+### Windows — App starten
 
-Der bequemste Weg: **ein** Befehl richtet alles ein. **PowerShell als
-Administrator** öffnen (Startmenü → „PowerShell" → Rechtsklick → *Als
-Administrator ausführen*) und diese Zeile einfügen:
+Podman Desktop ist installiert und läuft (siehe „Für alle Systeme zuerst" oben)?
+Dann brauchst du **kein Admin und kein Terminal** mehr:
 
-```powershell
-irm https://raw.githubusercontent.com/diebugger-tech/ModellGarage/main/install-windows.ps1 | iex
-```
-
-Dieser eine Befehl installiert automatisch alles Nötige:
-
-- **Podman Desktop** (die Container-Umgebung)
-- **WSL2** (das Linux-Subsystem, das Podman auf Windows braucht) — das ist meist
-  noch nicht vorhanden und wird hier mit eingerichtet
-- **Git** (zum Laden und späteren Aktualisieren des Projekts)
-- lädt **ModellGarage** herunter und **startet** die App
-
-Wichtig: Wird WSL2 zum ersten Mal installiert, verlangt Windows **einen Neustart**.
-Der Installer sagt das an — nach dem Neustart einfach **denselben Befehl noch
-einmal** in der Administrator-PowerShell einfügen, dann läuft er komplett durch.
-Am Ende öffnet sich der Browser auf http://localhost:8003.
+1. In den entpackten Projektordner gehen — der Ordner, in dem `start-podman.bat`
+   liegt (heißt meist `ModellGarage-main`, ggf. doppelt verschachtelt).
+2. **`start-podman.bat` doppelklicken.** Beim ersten Mal wird der Container gebaut
+   (ein paar Minuten), danach öffnet sich der Browser auf http://localhost:8003.
+3. **Stoppen:** **`stop-podman.bat`** doppelklicken.
 
 So sieht es aus, wenn alles läuft — der Container `modellgarage` steht in Podman
 Desktop auf **RUNNING**, Port **8003**:
 
 [![Podman Desktop – Container modellgarage läuft auf Port 8003](docs/screenshots/podman.png)](docs/screenshots/podman.png)
 
-### Windows — manuell (falls du den Installer nicht nutzt)
+> **Warum der Container-Weg?** ModellGarage läuft **isoliert** in einem Podman-
+> Container (rootless, in einer WSL2-VM) — getrennt von deinem Windows-System.
+> Deine Sammlungsdaten bleiben lokal, und Podman Desktop installierst du über den
+> **offiziellen, signierten** Installer — kein selbstgebautes Fern-Skript.
 
-Wenn du das Projekt als **ZIP** heruntergeladen und entpackt hast:
-
-3. **Podman-CLI installieren** (einmalig, in einer Administrator-PowerShell) —
-   `make` gibt es unter Windows **nicht**, daher der Container-Weg:
-   ```powershell
-   winget install -e --id RedHat.Podman
-   ```
-   Danach PowerShell **schließen und neu öffnen** (damit `podman` gefunden wird).
-4. **In den Projektordner wechseln.** Der ZIP-Ordner heißt meist
-   `ModellGarage-main` (ggf. doppelt verschachtelt). Am einfachsten: den Ordner im
-   Explorer öffnen, in dem `start-podman.bat` liegt, und dort **`start-podman.bat`
-   doppelklicken**. Oder in der PowerShell dorthin wechseln, z. B.:
-   ```powershell
-   cd "$env:USERPROFILE\Downloads\ModellGarage-main\ModellGarage-main"
-   .\start-podman.bat
-   ```
-   Der erste Start richtet die Podman-Maschine ein, baut den Container (ein paar
-   Minuten) und öffnet den Browser auf http://localhost:8003.
-5. **Stoppen:** **`stop-podman.bat`** doppelklicken (oder `.\stop-podman.bat`).
+> **Was macht `start-podman.bat`?** Die Batch startet nur das **mitgelieferte,
+> lesbare** `start-podman.ps1` aus demselben Ordner — sie lädt **nichts aus dem
+> Netz nach** und braucht **kein Admin**. Das enthaltene `-ExecutionPolicy Bypass`
+> gilt ausschließlich für diesen einen Aufruf des lokalen Skripts (nötig, weil
+> Windows Dateien aus einem heruntergeladenen ZIP sonst blockiert) — die
+> Sicherheitsrichtlinie deines Rechners bleibt unverändert. Du kannst
+> `start-podman.ps1` vorher öffnen und prüfen: es baut nur das Image aus dem
+> lokalen `Containerfile`, legt die Volumes an und startet den Container auf
+> Port 8003.
 
 > Hinweis: Die `make …`-Befehle weiter unten sind nur für Entwicklung unter
-> **Linux/macOS**. Unter Windows immer die `*-podman.bat`-Skripte bzw. den
-> Ein-Kommando-Installer verwenden.
+> **Linux/macOS**. Unter Windows immer die `*-podman.bat`-Skripte verwenden.
 
 ### macOS / Linux
 

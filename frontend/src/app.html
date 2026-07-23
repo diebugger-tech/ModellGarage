@@ -4,12 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#1a1a1a" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Schriften werden lokal via @fontsource geladen (siehe +layout.svelte) —
+         bewusst kein Google-Fonts-CDN: kein externer Request, kein IP-Abfluss. -->
     %sveltekit.head%
   </head>
   <body data-sveltekit-preload-data="hover">

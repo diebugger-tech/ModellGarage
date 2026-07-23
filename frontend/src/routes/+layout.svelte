@@ -1,4 +1,14 @@
 <script>
+  // Schriften lokal (self-hosted via @fontsource) — kein Google-CDN, kein
+  // externer Request, kein IP-Abfluss (DSGVO). Gewichte wie zuvor: Cormorant
+  // Garamond 400/500/600, Inter 300/400/500/600.
+  import '@fontsource/cormorant-garamond/400.css';
+  import '@fontsource/cormorant-garamond/500.css';
+  import '@fontsource/cormorant-garamond/600.css';
+  import '@fontsource/inter/300.css';
+  import '@fontsource/inter/400.css';
+  import '@fontsource/inter/500.css';
+  import '@fontsource/inter/600.css';
   import '$lib/styles.css';
   import { onMount } from 'svelte';
   let { children } = $props();
