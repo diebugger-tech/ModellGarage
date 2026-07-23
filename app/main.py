@@ -73,13 +73,21 @@ if _frontend_build.exists():
 
     _index = _frontend_build / "index.html"
 
+    _build_root = _frontend_build.resolve()
+
     @app.get("/{full_path:path}")
     async def spa_fallback(full_path: str):  # noqa: ANN201
         if full_path.startswith("api/"):
             raise HTTPException(404, "Not found")
-        # existierende statische Datei direkt ausliefern …
-        kandidat = _frontend_build / full_path
-        if full_path and kandidat.is_file():
-            return FileResponse(kandidat)
+        # existierende statische Datei direkt ausliefern — aber nur innerhalb
+        # des Build-Ordners (Path-Traversal-Guard, analog fotos.py: '..' bzw.
+        # kodierte Varianten dürfen nicht aus frontend/build ausbrechen).
+        if full_path:
+            try:
+                kandidat = (_frontend_build / full_path).resolve()
+            except (OSError, ValueError):
+                return FileResponse(_index)
+            if kandidat.is_relative_to(_build_root) and kandidat.is_file():
+                return FileResponse(kandidat)
         # … sonst index.html (SvelteKit übernimmt Client-seitig)
         return FileResponse(_index)
