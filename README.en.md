@@ -41,6 +41,13 @@ window, one port (`http://localhost:8003`). No Python/Node install required.
 2. **Get the project:** on GitHub click the green **"Code"** button → **"Download
    ZIP"**, then unzip — or `git clone`.
 
+> **A note on admin rights:** the **Administrator PowerShell is only needed once,
+> for the initial setup** — Windows installs WSL2, Podman Desktop and Git during
+> that step (WSL2 requires admin and usually a reboot). **Running** ModellGarage
+> afterwards needs **no admin and no terminal**: just double-click
+> `start-podman.bat` to start and `stop-podman.bat` to stop — or do everything
+> from the Podman Desktop UI.
+
 ### Windows — fastest (one command)
 
 Easiest path: **one** command sets everything up. Open **PowerShell as

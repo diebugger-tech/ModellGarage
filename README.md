@@ -60,6 +60,13 @@ Fenster, ein Port (`http://localhost:8003`). Keine Python-/Node-Installation nö
 2. **Projekt holen:** auf GitHub den grünen **„Code"**-Button → **„Download ZIP"**,
    dann entpacken — oder `git clone`.
 
+> **Kurz zu den Admin-Rechten:** Die **Administrator-PowerShell wird nur einmalig
+> für die Einrichtung** gebraucht — Windows installiert dabei WSL2, Podman Desktop
+> und Git (WSL2 verlangt Admin und meist einen Neustart). Der **spätere Betrieb**
+> der ModellGarage braucht **kein Admin und kein Terminal**: einfach
+> `start-podman.bat` per Doppelklick starten und `stop-podman.bat` zum Stoppen —
+> oder alles bequem über die Podman-Desktop-Oberfläche.
+
 ### Windows — schnellste Variante (ein Befehl)
 
 Der bequemste Weg: **ein** Befehl richtet alles ein. **PowerShell als
