@@ -20,8 +20,13 @@ from app.services.excel_import import importiere_excel
 
 router = APIRouter(prefix="/api", tags=["import/export"])
 
+# Spaltenüberschriften bewusst so, dass ein exportiertes Excel vom Import-Parser
+# (siehe excel_import.HEADER_MAP) wieder vollständig erkannt wird:
+# - "Min."/"Max." MIT Punkt (der Parser matcht auf "min."/"max.")
+# - "Hersteller" als Spalte, damit die Marke nicht vom Blattnamen abhängt
+#   (sonst würden z. B. Herpa/Schuco beim Re-Import zu "Wiking").
 SPALTEN = [
-    "Nr.", "Min", "Max", "Typ", "Farbe", "Zustand",
+    "Hersteller", "Nr.", "Min.", "Max.", "Typ", "Farbe", "Zustand",
     "Bemerkung", "bezahlt", "Schätzwert", "Anzahl", "Kaufdatum",
 ]
 
@@ -77,7 +82,8 @@ async def export_excel(session: AsyncSession = Depends(get_session)) -> Streamin
             ws.append(SPALTEN)
             sheets[name] = ws
         ws.append([
-            m.katalog.katalog_nr, m.katalog.min_euro, m.katalog.max_euro,
+            m.katalog.hersteller, m.katalog.katalog_nr,
+            m.katalog.min_euro, m.katalog.max_euro,
             m.katalog.typ, m.farbe, m.zustand, m.bemerkung,
             m.bezahlt, m.schaetzwert, m.anzahl, m.kaufdatum,
         ])

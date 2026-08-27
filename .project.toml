@@ -1,0 +1,9 @@
+[project]
+name = "ModellGarage"
+stack = "SvelteKit / Python"
+desc = "Inventar- & Bewertungs-App für Modellauto-Sammlungen"
+icon = "🏎️"
+status = "in-progress"
+tags = ["#Sammlung", "#SvelteKit", "#Python"]
+cmd_start = "make start"
+cmd_stop = "make stop"
